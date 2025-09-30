@@ -1,4 +1,3 @@
-import React from 'react';
 import { Report } from '@/types';
 import { useI18n } from '@/hooks/useI18n';
 import { formatDate } from '@/hooks/useReports';
