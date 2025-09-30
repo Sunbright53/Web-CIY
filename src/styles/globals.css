@@ -1,0 +1,217 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { 
+  --ciy-blue: #173BA6; 
+  --ciy-yellow: #FFD200; 
+  --ciy-dark: #0A0F2C; 
+}
+
+html, body { 
+  height: 100%; 
+}
+
+html[lang="th"] body {
+  font-family: 'Noto Sans Thai', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+}
+
+html[lang="en"] body {
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+}
+
+@layer components {
+  .bg-gradient-ciy {
+    background: linear-gradient(180deg, #EBF4FF 0%, #FFFFFF 40%, #E6F0FF 100%);
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(14, 165, 233, 0.18);
+  }
+
+  .btn-primary {
+    background: #0ea5e9;
+    color: #fff;
+  }
+  .btn-primary:hover {
+    filter: brightness(0.95);
+  }
+
+  .btn-blue {
+    background: #0369a1;
+    color: #fff;
+  }
+  .btn-blue:hover {
+    filter: brightness(1.05);
+  }
+
+  .badge-green {
+    background: #10B9811A;
+    color: #10B981;
+    border: 1px solid #10B98155;
+    white-space: nowrap;
+    word-break: keep-all;
+    hyphens: none;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+  }
+
+  .badge-red {
+    background: #EF44441A;
+    color: #EF4444;
+    border: 1px solid #EF444455;
+    white-space: nowrap;
+    word-break: keep-all;
+    hyphens: none;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+  }
+
+  .badge-blue {
+    background: #3B82F61A;
+    color: #3B82F6;
+    border: 1px solid #3B82F655;
+    white-space: nowrap;
+    word-break: keep-all;
+    hyphens: none;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+  }
+
+  .input {
+    background: #fff;
+    border: 1.5px solid #93c5fd;
+    color: #0f172a;
+  }
+  .input:focus {
+    outline: none;
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.35);
+  }
+  .input::placeholder {
+    color: #64748b;
+    opacity: 0.85;
+  }
+
+  .table-header {
+    background: #e2e8f0;
+  }
+
+  table thead th {
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  table thead th,
+  table tbody td {
+    border-bottom: 1px solid #cbd5e1;
+  }
+
+  table tbody td {
+    color: #0f172a;
+  }
+
+  .row-hover:hover {
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  .shadow-strong {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+
+  .modal-overlay {
+    background: rgba(0, 0, 0, 0.55);
+  }
+
+  .toast {
+    animation: slideIn 0.4s ease;
+  }
+
+  .link {
+    color: #0284c7;
+  }
+  .link:hover {
+    color: #0369a1;
+    text-decoration: underline;
+  }
+
+  .pill {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .seg {
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .seg button.active {
+    background: var(--ciy-yellow);
+    color: #1a1a1a;
+  }
+
+  /* Reports Table Specific Styles */
+  #student-reports-table {
+    table-layout: fixed;
+    width: 100%;
+    margin: auto;
+  }
+
+  #student-reports-table th,
+  #student-reports-table td {
+    text-align: center;
+    vertical-align: middle;
+    padding: 12px 8px;
+    word-break: break-word;
+  }
+
+  #student-reports-table td.text-left-cell {
+    text-align: left;
+    padding-left: 12px;
+  }
+
+  /* Column widths for reports table */
+  #student-reports-table th:nth-child(1) { width: 10vw; }
+  #student-reports-table th:nth-child(2) { width: 14vw; }
+  #student-reports-table th:nth-child(3) { width: 15vw; }
+  #student-reports-table th:nth-child(4) { width: 20vw; }
+  #student-reports-table th:nth-child(5) { width: 20vw; }
+  #student-reports-table th:nth-child(6) { width: 30vw; }
+  #student-reports-table th:nth-child(7) { width: 30vw; }
+  #student-reports-table th:nth-child(8) { width: 30vw; }
+  #student-reports-table th:nth-child(9) { width: 30vw; }
+  #student-reports-table th:nth-child(10) { width: 30vw; }
+
+  .reports-ghostbar {
+    position: sticky;
+    bottom: 0;
+    height: 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(6px);
+    border-top: 1px solid rgba(2, 132, 199, 0.25);
+    box-shadow: 0 -6px 12px rgba(0, 0, 0, 0.08);
+    z-index: 10;
+  }
+
+  .reports-card {
+    position: relative;
+  }
+
+  /* ซ่อน scrollbar ของคอนเทนเนอร์จริง */
+.no-x-scrollbar {
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* IE / Edge legacy */
+}
+.no-x-scrollbar::-webkit-scrollbar { /* Chrome / Safari */
+  display: none;
+  height: 0;
+}
+
+}
