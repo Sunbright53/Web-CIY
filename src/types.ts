@@ -32,6 +32,8 @@ export interface Report {
   attachments?: string;
 }
 
+
+
 export interface Session {
   role: 'parent' | 'coach' | null;
   parentId?: string;
