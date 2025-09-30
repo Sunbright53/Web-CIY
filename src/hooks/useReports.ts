@@ -81,3 +81,4 @@ export function formatDate(dateString: string): string {
          String(d.getMonth() + 1).padStart(2, '0') + '/' +
          d.getFullYear();
 }
+

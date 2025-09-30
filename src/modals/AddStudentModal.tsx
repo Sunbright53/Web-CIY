@@ -1,3 +1,4 @@
+// AddStudentModal.tsx
 import React, { useState, useEffect } from 'react';
 import { AddStudentForm, Student } from '@/types';
 import { Input } from '@/components/ui/Input';
@@ -26,7 +27,7 @@ function randomPassword(length = 6): string {
 }
 
 export function AddStudentModal({ isOpen, students, onClose, onSuccess }: AddStudentModalProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n(); // ⬅️ เพิ่ม lang
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<AddStudentForm>({
@@ -84,7 +85,7 @@ export function AddStudentModal({ isOpen, students, onClose, onSuccess }: AddStu
       
       if (isDemo) {
         // Demo mode - just show success
-        showToast(t('lang') === 'th' ? 'บันทึกนักเรียน (เดโม) สำเร็จ' : 'Student saved (demo)', 'success');
+        showToast(lang === 'th' ? 'บันทึกนักเรียน (เดโม) สำเร็จ' : 'Student saved (demo)', 'success');
       } else {
         await submitStudent(CONFIG.appScriptPostUrl, formData);
         showToast(t('studentSaved'), 'success');
@@ -129,7 +130,7 @@ export function AddStudentModal({ isOpen, students, onClose, onSuccess }: AddStu
             name="coder_id"
             value={formData.coder_id}
             onChange={handleInputChange}
-            placeholder={t('lang') === 'th' ? 'เช่น 6600010' : 'e.g., 6600010'}
+            placeholder={lang === 'th' ? 'เช่น 6600010' : 'e.g., 6600010'}
             required
           />
           
@@ -138,7 +139,7 @@ export function AddStudentModal({ isOpen, students, onClose, onSuccess }: AddStu
             name="nickname"
             value={formData.nickname}
             onChange={handleInputChange}
-            placeholder={t('lang') === 'th' ? 'เช่น Putter' : 'e.g., Putter'}
+            placeholder={lang === 'th' ? 'เช่น Putter' : 'e.g., Putter'}
             required
           />
           
@@ -147,7 +148,7 @@ export function AddStudentModal({ isOpen, students, onClose, onSuccess }: AddStu
             name="fullname"
             value={formData.fullname}
             onChange={handleInputChange}
-            placeholder={t('lang') === 'th' ? 'ชื่อ-นามสกุล' : 'Full name'}
+            placeholder={lang === 'th' ? 'ชื่อ-นามสกุล' : 'Full name'}
             required
             className="md:col-span-2"
           />
@@ -184,7 +185,7 @@ export function AddStudentModal({ isOpen, students, onClose, onSuccess }: AddStu
             name="parent_password"
             value={formData.parent_password}
             onChange={handleInputChange}
-            placeholder={t('lang') === 'th' ? 'เว้นว่างเพื่อสุ่มให้' : 'Leave blank to auto-generate'}
+            placeholder={lang === 'th' ? 'เว้นว่างเพื่อสุ่มให้' : 'Leave blank to auto-generate'}
             className="md:col-span-2"
           />
           
@@ -200,10 +201,10 @@ export function AddStudentModal({ isOpen, students, onClose, onSuccess }: AddStu
         
         <div className="text-xs text-white/60 mt-3">
           {isDemo 
-            ? (t('lang') === 'th' 
+            ? (lang === 'th' 
                 ? 'หมายเหตุ: ยังไม่ได้ตั้งค่า Apps Script — เดโมโหมด (ข้อมูลจะไม่ถูกเขียนลงชีตจริง)'
                 : 'Note: App Script URL not set yet — demo mode (won\'t write to real sheet)')
-            : (t('lang') === 'th'
+            : (lang === 'th'
                 ? 'ข้อมูลจะถูกส่งไปยัง Apps Script และเพิ่มลงชีต Students'
                 : 'Data will be sent to Apps Script and appended to Students sheet')
           }

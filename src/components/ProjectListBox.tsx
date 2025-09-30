@@ -1,5 +1,6 @@
 // src/components/ProjectListBox.tsx
-import React, { useState } from 'react';
+import { useState } from 'react';
+
 import { updateProjectListLink } from '@/services/api';
 import { Student } from '@/types';
 import { useAuthStore } from '@/store/authStore';

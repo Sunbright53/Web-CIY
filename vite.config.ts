@@ -2,13 +2,12 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath, URL } from 'node:url'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/ciy-student-reports/', // สำหรับ GitHub Pages
+  base: '/Web-CIY/',           // ✅ ชื่อ repo นี้
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)), // ✅ ใช้ fileURLToPath แทน path.resolve
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
   build: {
@@ -16,3 +15,4 @@ export default defineConfig({
     sourcemap: true,
   },
 })
+

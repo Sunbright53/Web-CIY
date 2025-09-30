@@ -222,13 +222,20 @@ export const translations = {
 type Lang = keyof typeof translations;                  // 'th' | 'en'
 type TranslationKey = keyof typeof translations['th'];  // คีย์ทั้งหมดที่รองรับ
 
+
 export function useI18n() {
-  const { lang } = useAuthStore() as { lang: Lang };
+  // รองรับได้ทั้ง 2 แบบ: { lang, setLang } หรือ { language, setLanguage }
+  const store = useAuthStore() as any;
+
+  const language: Lang = store.lang ?? store.language ?? 'th';
+  const setLanguage: (l: Lang) => void =
+    store.setLang ?? store.setLanguage ?? (() => {});
 
   const t = (key: TranslationKey): string => {
-    // ถ้าภาษาปัจจุบันไม่มีค่านี้ ให้ fallback เป็น en
-    return translations[lang][key] ?? translations.en[key];
+    // ถ้าคีย์ไม่มีในภาษาปัจจุบัน ให้ fallback เป็น en
+    return translations[language][key] ?? translations.en[key];
   };
 
-  return { t, lang };
+  // คงพฤติกรรมเดิม + เพิ่ม setLang ให้ใช้ได้
+  return { t, lang: language as Lang, setLang: setLanguage };
 }

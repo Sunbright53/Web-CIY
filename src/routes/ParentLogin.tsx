@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudents } from '@/hooks/useStudents';
 import { useToast } from '@/components/Toast';
@@ -83,54 +83,3 @@ export default function ParentLogin() {
     </div>
   );
 }
-
-
-
-
-
-// // src/routes/ParentLogin.tsx
-// import React from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import { Button } from '@/components/ui/Button';
-// import { useI18n } from '@/hooks/useI18n';
-
-// export function ParentLogin() {
-//   const navigate = useNavigate();
-//   const { t } = useI18n();
-
-//   const handleLogin = () => {
-//     // TODO: ใส่ logic ตรวจรหัสผู้ปกครอง
-//     navigate('/student/123'); // ตัวอย่างนำทางหลังล็อกอิน
-//   };
-
-//   return (
-//     <section className="max-w-md mx-auto">
-//       <div className="glass rounded-2xl p-8 shadow-strong">
-//         <h1 className="text-2xl md:text-3xl font-extrabold leading-tight text-sky-900">
-//           {t('parentLoginTitle') || 'Parent Login'}
-//         </h1>
-
-//         <p className="text-sky-700/80 mt-3">
-//           {t('parentLoginDesc') || 'Enter your parent code to continue.'}
-//         </p>
-
-//         <div className="mt-6 flex flex-col gap-3">
-//           <input
-//             type="text"
-//             placeholder={t('enterParentCode') || 'Parent code'}
-//             className="input px-4 py-3 rounded-xl border"
-//           />
-//           <Button
-//             variant="primary"
-//             size="lg"
-//             onClick={handleLogin}
-//             className="w-full"
-//           >
-//             {t('login') || 'Login'}
-//           </Button>
-//         </div>
-//       </div>
-//     </section>
-//   );
-// }
-// export default ParentLogin;

@@ -11,11 +11,11 @@ interface ReportsTableProps {
 }
 
 // (ยังไม่ใช้ก็ปล่อยไว้ได้)
-function linkOrDash(url: string, t: (key: string) => string): string {
-  if (!url) return '-';
-  const safe = url.startsWith('http') ? url : null;
-  return safe ? `<a href="${safe}" target="_blank" rel="noopener noreferrer" class="link">${t('open')}</a>` : '-';
-}
+// function linkOrDash(url: string, t: (key: string) => string): string {
+//   if (!url) return '-';
+//   const safe = url.startsWith('http') ? url : null;
+//   return safe ? `<a href="${safe}" target="_blank" rel="noopener noreferrer" class="link">${t('open')}</a>` : '-';
+// }
 
 export function ReportsTable({ reports, loading, mode = 'student' }: ReportsTableProps) {
   const { t } = useI18n();

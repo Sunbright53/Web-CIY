@@ -263,37 +263,3 @@ export async function submitStudent(
     throw new Error(json?.error || `Failed to submit student: ${res.status}`);
   }
 }
-
-
-
-
-
-// export async function submitStudent(
-//   appScriptUrl: string,
-//   data: AddStudentForm
-// ): Promise<void> {
-//   const payload = {
-//     action: 'add_student',
-//     coder_id: data.coder_id?.trim() || '',
-//     nickname: data.nickname?.trim() || '',
-//     fullname: data.fullname?.trim() || '',
-//     status: data.status?.trim() || '',
-//     course_status: data.course_status?.trim() || '',
-//     program: data.program?.trim() || '',
-//     parent_password: data.parent_password?.trim() || randomPassword()
-//   };
-
-//   const body = new URLSearchParams();
-//   Object.entries(payload).forEach(([k, v]) => {
-//     body.append(k, v);
-//   });
-
-//   const response = await fetch(appScriptUrl, {
-//     method: 'POST',
-//     body
-//   });
-
-//   if (!response.ok) {
-//     throw new Error(`Failed to submit student: ${response.status}`);
-//   }
-// }

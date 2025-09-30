@@ -28,7 +28,7 @@ const statusClass = (status: string) => {
 
 export function StudentTable({ students, loading, sortState, onSort }: StudentTableProps) {
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { t, lang } = useI18n(); // ⬅️ เพิ่ม lang
 
   const handleStudentClick = (coderId: string) => {
     navigate(`/student/${coderId}`);
@@ -165,7 +165,7 @@ export function StudentTable({ students, loading, sortState, onSort }: StudentTa
                     <Badge status={student.parent_password} type="pill" />
                   ) : (
                     <span className="text-xs text-red-300">
-                      {t('lang') === 'th' ? 'ไม่มีรหัสผู้ปกครอง' : 'No parent pass'}
+                      {lang === 'th' ? 'ไม่มีรหัสผู้ปกครอง' : 'No parent pass'}
                     </span>
                   )}
                 </td>
@@ -177,5 +177,3 @@ export function StudentTable({ students, loading, sortState, onSort }: StudentTa
     </div>
   );
 }
-
-
