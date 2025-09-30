@@ -27,66 +27,6 @@ function CoachRoute() {
   return session.role === 'coach' ? <Students /> : <Navigate to="/coach-login" replace />;
 }
 
-// function FixedViewport({
-//   children,
-//   baseW = 562,
-//   baseH = 833,
-// }: {
-//   children: React.ReactNode;
-//   baseW?: number;
-//   baseH?: number;
-// }) {
-//   const [vw, setVw] = useState(window.innerWidth);
-//   const [vh, setVh] = useState(window.innerHeight);
-
-//   useEffect(() => {
-//     const onResize = () => {
-//       setVw(window.innerWidth);
-//       setVh(window.innerHeight);
-//     };
-//     window.addEventListener('resize', onResize);
-//     window.addEventListener('orientationchange', onResize);
-//     return () => {
-//       window.removeEventListener('resize', onResize);
-//       window.removeEventListener('orientationchange', onResize);
-//     };
-//   }, []);
-
-//   // scale เฉพาะเมื่อจอเล็กกว่า base (ไม่ upscale)
-//   const scale = useMemo(() => Math.min(vw / baseW, vh / baseH, 1), [vw, vh, baseW, baseH]);
-
-//   if (scale === 1) {
-//     // จอ >= 562×833 ใช้เลย์เอาต์ปกติ (responsive ตามเดิม)
-//     return <>{children}</>;
-//   }
-
-//   // จอ < 562×833 => scale ทั้งแอปให้พอดีจอ และจัดกึ่งกลาง
-//   return (
-//     <div
-//       style={{
-//         width: '100vw',
-//         height: '100vh',
-//         overflow: 'hidden',
-//         display: 'flex',
-//         alignItems: 'flex-start', // บน
-//         justifyContent: 'center', // กลางแนวนอน
-//         background: 'transparent',
-//       }}
-//     >
-//       <div
-//         style={{
-//           width: baseW,
-//           height: baseH,
-//           transform: `scale(${scale})`,
-//           transformOrigin: 'top center',
-//         }}
-//       >
-//         {children}
-//       </div>
-//     </div>
-//   );
-// }
-
 // ---------- App (มี Router ครบ) ----------
 export default function App() {
   return (
