@@ -4,15 +4,12 @@ import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/Web-CIY/',           // ✅ ชื่อ repo นี้
+  base: '/',                    // ✅ ใช้ custom domain ต้องเป็น '/'
   resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
-    },
+    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   build: {
-    outDir: 'dist',
-    sourcemap: true,
+    outDir: 'docs',             // ✅ ให้ Pages เสิร์ฟจาก /docs ตามที่ตั้งไว้
+    sourcemap: false,
   },
 })
-
