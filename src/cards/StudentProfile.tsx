@@ -22,14 +22,24 @@ export function StudentProfile({ student }: StudentProfileProps) {
   const { session } = useAuthStore();
   const { t } = useI18n();
 
+  // ✅ รวมรหัสผู้ปกครองจากหลายชื่อคอลัมน์ให้เป็นค่าเดียว
+  const parentPassword = String(
+    (student as any).parent_password ??
+    (student as any).password ??
+    (student as any)['Parent Password'] ??
+    (student as any)['Password'] ??
+    ''
+  ).trim();
+
   // ✅ Parent password controls
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const displayPassword =
-    passwordVisible ? (student.parent_password || '-') : (student.parent_password ? '••••••' : '-');
+  const displayPassword = passwordVisible
+    ? (parentPassword || '-')
+    : (parentPassword ? '••••••' : '-');
 
   const handleCopyPassword = async () => {
-    if (!student.parent_password) return;
-    await navigator.clipboard.writeText(student.parent_password);
+    if (!parentPassword) return;
+    await navigator.clipboard.writeText(parentPassword);
     alert(t('copied') || 'Copied!');
   };
 
@@ -104,7 +114,7 @@ export function StudentProfile({ student }: StudentProfileProps) {
               <span className="font-semibold">{student.status || '-'}</span>
             </div>
 
-            {/* ✅ Project List (ตำแหน่งเดียวกับ Parent Password) */}
+            {/* ✅ Project List */}
             <div className="p-3 rounded-xl bg-white border border-slate-200">
               <div className="text-slate-600 mb-2">
                 {t('projectList') || 'Project List'}
