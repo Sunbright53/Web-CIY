@@ -6,6 +6,7 @@ export interface Student {
   course_status: string;
   program?: string;
   parent_password: string;
+  password?: string; // For backward compatibility
   project_list_url?: string;
 }
 

@@ -32,13 +32,22 @@ export default function ParentLogin() {
         return;
       }
 
-      const sheetPw = (st.parent_password ?? '').trim();
+      // 👇 รองรับหลายชื่อคอลัมน์จากชีต และกัน null/undefined
+      const sheetPw = String(
+        (st as any).parent_password ??
+        (st as any).password ??
+        (st as any)['Parent Password'] ??
+        (st as any)['Password'] ??
+        ''
+      ).trim();
+
       if (sheetPw.length === 0) {
         showToast(t('noParentPasswordSet') || 'Parent password not set in sheet.', 'error');
         return;
       }
 
-      if (sheetPw !== pw) {
+      // 👇 เทียบแบบไม่สนตัวพิมพ์ (ถ้าต้องการให้เคร่งครัด ให้เปลี่ยนกลับเป็น sheetPw !== pw)
+      if (sheetPw.toLowerCase() !== pw.toLowerCase()) {
         showToast(t('invalidParentPassword') || 'Invalid parent password.', 'error');
         return;
       }
