@@ -96,12 +96,14 @@ export function mapRawToStudents(raw: Record<string, any>[]): Student[] {
 
 
 
-
 // ===== reports =====
 export function mapRawToReports(rawData: Record<string, any>[]): Report[] {
   const H = HEADER_MAPPINGS.reports;
   return rawData
-    .map(r => ({
+    .map((r, idx) => ({
+      // ✅ เพิ่ม row ให้รู้เลขแถวจริงในชีต (แถว 1 = header → ข้อมูลเริ่มที่แถว 2)
+      row: idx + 2,
+
       coder_id: rVal(r, H.coder_id),
       date: rVal(r, H.date),
       time: rVal(r, H.time),
@@ -139,4 +141,3 @@ export function mapRawToCoaches(rawData: Record<string, any>[]): Coach[] {
     // เดิม: .filter(c => c.coach_id && c.password)
     .filter(c => c.password); // ✅ เอาแค่พาสพอ
 }
-

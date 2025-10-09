@@ -22,7 +22,7 @@ export const translations = {
     coderIdLabel: 'รหัสนักเรียน (Coder ID)',
     parentPassLabel: 'รหัสผู้ปกครอง',
     coderIdPlaceholder: 'เช่น 6600001',
-    enterParentCode: 'กรอกรหัสผู้ปกครอง', // ✅ เพิ่มคีย์ที่ขาด
+    enterParentCode: 'กรอกรหัสผู้ปกครอง',
     login: 'เข้าสู่ระบบ',
 
     // Coach Login
@@ -89,7 +89,11 @@ export const translations = {
     fillStudentInfo: 'กรอกข้อมูลนักเรียนด้านล่าง',
     saveStudent: 'บันทึกนักเรียน',
     saveReport: 'บันทึกรายงาน',
-    projectList: 'รายการโปรเจกต์', 
+    projectList: 'รายการโปรเจกต์',
+
+    // ⭐ New for edit mode
+    saveChanges: 'บันทึกการเปลี่ยนแปลง',
+    editReport: 'แก้ไขรายงาน',
 
     // Messages
     coachOnlyFeature: 'ฟีเจอร์นี้สำหรับโค้ชเท่านั้น',
@@ -104,19 +108,18 @@ export const translations = {
     errorSavingStudent: 'เกิดข้อผิดพลาดในการเพิ่มนักเรียน',
     errorSavingReport: 'เกิดข้อผิดพลาดขณะบันทึก',
     sheetLinkNotSet: 'ยังไม่ได้ตั้งค่าลิงก์ชีต',
-  coderId: 'Coder ID',
-  fillBothFields: 'กรอกให้ครบทั้ง Coder ID และรหัสผู้ปกครอง',
-  invalidParentPassword: 'รหัสผู้ปกครองไม่ถูกต้อง',
-  noParentPasswordSet: 'ยังไม่ได้ตั้งรหัสผู้ปกครองในชีต',
-    
+    coderId: 'Coder ID',
+    fillBothFields: 'กรอกให้ครบทั้ง Coder ID และรหัสผู้ปกครอง',
+    invalidParentPassword: 'รหัสผู้ปกครองไม่ถูกต้อง',
+    noParentPasswordSet: 'ยังไม่ได้ตั้งรหัสผู้ปกครองในชีต',
   },
+
   en: {
     // Navigation
     home: 'Home',
     parent: 'Parent',
     coach: 'Coach',
     logout: 'Logout',
-    
 
     // Landing
     landingTitle: 'Welcome to CIY.CLUB Student Reports',
@@ -130,7 +133,7 @@ export const translations = {
     coderIdLabel: 'Coder ID',
     parentPassLabel: 'Parent Password',
     coderIdPlaceholder: 'e.g., 6600001',
-    enterParentCode: 'Enter parent code', // ✅ เพิ่มคีย์ที่ขาด
+    enterParentCode: 'Enter parent code',
     login: 'Log in',
 
     // Coach Login
@@ -199,6 +202,10 @@ export const translations = {
     saveReport: 'Save report',
     projectList: 'Project List',
 
+    // ⭐ New for edit mode
+    saveChanges: 'Save changes',
+    editReport: 'Edit report',
+
     // Messages
     coachOnlyFeature: 'This feature is for coaches only',
     loadingStudents: 'Students are still loading, please try again',
@@ -222,11 +229,8 @@ export const translations = {
 type Lang = keyof typeof translations;                  // 'th' | 'en'
 type TranslationKey = keyof typeof translations['th'];  // คีย์ทั้งหมดที่รองรับ
 
-
 export function useI18n() {
-  // รองรับได้ทั้ง 2 แบบ: { lang, setLang } หรือ { language, setLanguage }
   const store = useAuthStore() as any;
-
   const language: Lang = store.lang ?? store.language ?? 'th';
   const setLanguage: (l: Lang) => void =
     store.setLang ?? store.setLanguage ?? (() => {});
@@ -236,6 +240,5 @@ export function useI18n() {
     return translations[language][key] ?? translations.en[key];
   };
 
-  // คงพฤติกรรมเดิม + เพิ่ม setLang ให้ใช้ได้
   return { t, lang: language as Lang, setLang: setLanguage };
 }
