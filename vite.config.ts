@@ -1,39 +1,18 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { fileURLToPath, URL } from 'node:url'
+// vite.config.ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/',                    // ✅ ใช้ custom domain ต้องเป็น '/'
-  base: '/',                    // ✅ ใช้ custom domain ต้องเป็น '/'
+  base: '/', // ❗️เหลืออันเดียวพอ (ถ้า deploy GitHub Pages ใต้ชื่อ repo ให้เปลี่ยนเป็น '/ciy-student-reports/')
   resolve: {
-    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
-    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
   },
   build: {
-    outDir: 'docs',             // ✅ ให้ Pages เสิร์ฟจาก /docs ตามที่ตั้งไว้
+    outDir: 'docs',
     sourcemap: false,
   },
-})
-
-
-
-
-// import { defineConfig } from 'vite'
-// import react from '@vitejs/plugin-react'
-// import { fileURLToPath, URL } from 'node:url'
-
-// export default defineConfig({
-//   plugins: [react()],
-//   base: '/Web-CIY/',           // ✅ ชื่อ repo นี้
-//   resolve: {
-//     alias: {
-//       '@': fileURLToPath(new URL('./src', import.meta.url)),
-//     },
-//   },
-//   build: {
-//     outDir: 'dist',
-//     sourcemap: true,
-//   },
-// })
-
+});

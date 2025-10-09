@@ -1,3 +1,4 @@
+// src/services/api.ts
 import { CONFIG } from '@/config';
 import { Student, Report, AddReportForm, AddStudentForm } from '@/types';
 import { mapRawToStudents, mapRawToReports, mapRawToCoaches } from './mapper';
@@ -9,25 +10,13 @@ type ApiOk = { success: true; [k: string]: any };
 type ApiErr = { success: false; error?: string };
 export type ApiResponse = ApiOk | ApiErr;
 
-/** ✅ POST JSON ไปยัง Apps Script */
-// async function postJSON(payload: any): Promise<ApiResponse> {
-//   if (!CONFIG.appScriptPostUrl) {
-//     return { success: false, error: 'appScriptPostUrl is not set in config.ts' };
-//   }
-//   try {
-//     const res = await fetch(CONFIG.appScriptPostUrl, {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify(payload),
-//     });
-//     const data = await res.json().catch(() => ({}));
-//     if (!res.ok) return { success: false, error: data?.error || 'Network error' };
-//     return data as ApiResponse;
-//   } catch (e: any) {
-//     return { success: false, error: e?.message || 'Request failed' };
-//   }
-// }
+/* =========================================================
+   🔰 Simple Request (form-urlencoded) to Apps Script
+   - ไม่ใช้ JSON + ไม่ส่ง custom header → ไม่เกิด CORS preflight
+   - ใช้ CONFIG.appScriptPostUrl เป็นปลายทางหลัก
+   ========================================================= */
 
+const WEBHOOK_KEY: string | undefined = import.meta.env.VITE_SHEETS_WEBHOOK_KEY;
 
 async function postForm(payload: Record<string, string>): Promise<ApiResponse> {
   if (!CONFIG.appScriptPostUrl) {
@@ -38,7 +27,7 @@ async function postForm(payload: Record<string, string>): Promise<ApiResponse> {
     Object.entries(payload).forEach(([k, v]) => body.append(k, v ?? ''));
 
     const res = await fetch(CONFIG.appScriptPostUrl, { method: 'POST', body });
-    // Apps Script ส่ง JSON กลับมา
+    // Apps Script ควรส่ง JSON กลับมา
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data?.success) {
       return { success: false, error: data?.error || `Network error (${res.status})` };
@@ -49,11 +38,7 @@ async function postForm(payload: Record<string, string>): Promise<ApiResponse> {
   }
 }
 
-
 /** ✅ อัปเดตลิงก์ Project List ของนักเรียน */
-
-
-
 export async function updateProjectListLink(
   coder_id: string,
   project_list_url: string
@@ -65,19 +50,21 @@ export async function updateProjectListLink(
   });
 }
 
-
-// export async function updateProjectListLink(
-//   coder_id: string,
-//   project_list_url: string
-// ): Promise<ApiResponse> {
-//   return postJSON({
-//     action: 'update_project_list_link',
-//     coder_id,
-//     project_list_url,
-//   });
-// }
-
-
+/** ✅ อัปเดตรหัสผ่านผู้ปกครอง (Simple Request: no preflight)
+ *  - ส่ง key ใน body → ไม่ต้องใช้ header พิเศษ
+ *  - ใช้ .env เดิม: VITE_SHEETS_WEBHOOK_KEY
+ */
+export async function updateParentPassword(
+  coder_id: string,
+  new_password: string
+): Promise<ApiResponse> {
+  return postForm({
+    action: 'update_parent_password',
+    coder_id,
+    new_password,
+    key: WEBHOOK_KEY || '',
+  });
+}
 
 /** ===== CSV Helper ===== */
 function parseCSV(text: string): Record<string, any>[] {
@@ -223,21 +210,14 @@ export async function submitReport(
   );
   body.append('Session report', (data.session_report ?? '').trim());
   body.append('Feedback', (data.feedback ?? '').trim());
-  body.append(
-    'Recommendation for next session',
-    (data.next_recommend ?? '').trim()
-  );
-  body.append(
-    '12 Times Progress Report (link)',
-    (data.link12 ?? '').trim()
-  );
+  body.append('Recommendation for next session', (data.next_recommend ?? '').trim());
+  body.append('12 Times Progress Report (link)', (data.link12 ?? '').trim());
 
   const res = await fetch(appScriptUrl, { method: 'POST', body });
   if (!res.ok) throw new Error(`Failed to submit report: ${res.status}`);
 }
 
 // ---------- Submit student ----------
-
 export async function submitStudent(
   appScriptUrl: string,
   data: AddStudentForm
@@ -261,5 +241,51 @@ export async function submitStudent(
 
   if (!res.ok || !json?.success) {
     throw new Error(json?.error || `Failed to submit student: ${res.status}`);
+  }
+}
+
+// ---------- ✅ NEW: Update report by row ----------
+export async function updateReportByRow(
+  appScriptUrl: string,
+  row: number,
+  updates: Partial<AddReportForm> & { coder_id?: string }
+): Promise<void> {
+  const body = new URLSearchParams();
+
+  body.append('action', 'update_report');
+  body.append('row', String(row));
+
+  // 🔐 ส่ง key ให้ตรงกับ Apps Script (updateReport_ เช็ค WEBHOOK_CLIENT_KEY)
+  if (WEBHOOK_KEY) body.append('key', WEBHOOK_KEY);
+
+  // เฉพาะฟิลด์ที่ต้องการอัปเดต
+  if (updates.coder_id != null) body.append('coder_id', (updates.coder_id ?? '').trim());
+  if (updates.date != null) body.append('date', (updates.date ?? '').trim());
+  if (updates.time != null) body.append('time', (updates.time ?? '').trim());
+  if (updates.topic != null) body.append('course', (updates.topic ?? '').trim());
+  if (updates.session_incharge != null) body.append('session incharge', (updates.session_incharge ?? '').trim());
+  if (updates.session_type != null) body.append('session type', (updates.session_type ?? '').trim());
+
+  if ((updates as any).progress_summary != null) {
+    body.append('progress_summary', ((updates as any).progress_summary ?? '').toString().trim());
+  }
+  if (updates.session_report != null) {
+    body.append('Session report', (updates.session_report ?? '').trim());
+  }
+  if (updates.feedback != null) {
+    body.append('Feedback', (updates.feedback ?? '').trim());
+  }
+  if (updates.next_recommend != null) {
+    body.append('Recommendation for next session', (updates.next_recommend ?? '').trim());
+  }
+  if (updates.link12 != null) {
+    body.append('12 Times Progress Report (link)', (updates.link12 ?? '').trim());
+  }
+
+  const res = await fetch(appScriptUrl, { method: 'POST', body });
+  const json = await res.json().catch(() => ({} as any));
+
+  if (!res.ok || json?.success === false) {
+    throw new Error(json?.error || `Failed to update report: ${res.status}`);
   }
 }

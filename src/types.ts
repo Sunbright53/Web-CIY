@@ -1,3 +1,4 @@
+// types.ts
 export interface Student {
   coder_id: string;
   nickname: string;
@@ -11,6 +12,9 @@ export interface Student {
 }
 
 export interface Report {
+  // ✅ แถวจริงในชีต (แถว 1 = header → ข้อมูลเริ่มที่แถว 2)
+  row: number;
+
   coder_id: string;
   date: string;
   time?: string;
@@ -32,8 +36,6 @@ export interface Report {
   coach_name?: string;
   attachments?: string;
 }
-
-
 
 export interface Session {
   role: 'parent' | 'coach' | null;

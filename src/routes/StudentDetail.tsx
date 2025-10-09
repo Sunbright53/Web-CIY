@@ -78,8 +78,16 @@ export function StudentDetail() {
           </div>
 
           <div className="space-y-6">
-            {/* ข้อมูลโปรไฟล์นักเรียน */}
-            <StudentProfile student={student} />
+            {/* ✅ ข้อมูลโปรไฟล์นักเรียน 
+                - บังคับ container ที่เป็น grid ด้านในให้ items-stretch
+                - บังคับการ์ดที่มีคลาส glass ให้สูงเต็มคอลัมน์ */}
+            {/* ✅ Fix alignment so Parent Password aligns with others */}
+<div className="flex flex-col">
+  <div className="grid items-stretch">
+    <StudentProfile student={student} />
+  </div>
+</div>
+
 
             {/* ✅ Project List Section */}
             <div className="glass rounded-2xl p-6 shadow-strong">
@@ -121,5 +129,3 @@ export function StudentDetail() {
     </div>
   );
 }
-
-

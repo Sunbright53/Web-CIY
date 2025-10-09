@@ -1,79 +1,108 @@
-// AddReportModal.tsx
+// src/modals/AddReportModal.tsx
 import React, { useState, useEffect } from 'react';
 import { Student, AddReportForm } from '@/types';
 import { Input, Textarea } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { useI18n } from '@/hooks/useI18n';
-import { submitReport } from '@/services/api';
+import { submitReport, updateReportByRow } from '@/services/api';
 import { CONFIG } from '@/config';
 import { useToast } from '@/components/Toast';
 
-interface AddReportModalProps {
+type AddReportModalProps = {
   isOpen: boolean;
-  student: Student | null;
+  mode?: 'add' | 'edit';
+  initial?: Partial<AddReportForm>;
+  reportRow?: number;
+  student: Student;
   onClose: () => void;
   onSuccess: () => void;
-}
+};
 
-export function AddReportModal({ isOpen, student, onClose, onSuccess }: AddReportModalProps) {
-  const { t, lang } = useI18n(); // ⬅️ เพิ่ม lang
+export function AddReportModal({
+  isOpen,
+  mode = 'add',
+  initial,
+  reportRow,
+  student,
+  onClose,
+  onSuccess
+}: AddReportModalProps) {
+  const { t, lang } = useI18n();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  // 🔁 ดึงคอร์สจาก student แบบยืดหยุ่น (รองรับทั้ง course และ program)
+  const studentCourse =
+    (student as any)?.course ??
+    (student as any)?.program ??
+    '';
+
   const [formData, setFormData] = useState<AddReportForm>({
-    date: new Date().toISOString().slice(0, 10),
-    time: '',
-    topic: '',
-    session_incharge: '',
-    session_type: '',
-    session_report: '',
-    feedback: '',
-    next_recommend: '',
-    link12: ''
+    date: initial?.date || today,
+    time: initial?.time || '',
+    // ✅ ใช้ topic จาก initial ก่อน ไม่มีก็ fallback เป็นคอร์สของนักเรียน
+    topic: initial?.topic ?? studentCourse,
+    session_incharge: initial?.session_incharge || '',
+    session_type: initial?.session_type || '',
+    session_report: initial?.session_report || '',
+    feedback: initial?.feedback || '',
+    next_recommend: initial?.next_recommend || '',
+    link12: initial?.link12 || ''
   });
 
+  // เมื่อ modal เปิด/เปลี่ยน initial ให้ sync ค่าอีกครั้ง
   useEffect(() => {
-    if (isOpen) {
-      setFormData({
-        date: new Date().toISOString().slice(0, 10),
-        time: '',
-        topic: '',
-        session_incharge: '',
-        session_type: '',
-        session_report: '',
-        feedback: '',
-        next_recommend: '',
-        link12: ''
-      });
-    }
-  }, [isOpen]);
+    if (!isOpen) return;
+    setFormData({
+      date: initial?.date || today,
+      time: initial?.time || '',
+      topic: initial?.topic ?? studentCourse,
+      session_incharge: initial?.session_incharge || '',
+      session_type: initial?.session_type || '',
+      session_report: initial?.session_report || '',
+      feedback: initial?.feedback || '',
+      next_recommend: initial?.next_recommend || '',
+      link12: initial?.link12 || ''
+    });
+    // ❗ อย่าใส่ student.course/program ตรง ๆ เพราะ type อาจไม่ตรง
+  }, [isOpen, initial, today, student]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!student) return;
-
-    setLoading(true);
+  const save = async () => {
     try {
+      setLoading(true);
       const isDemo = CONFIG.appScriptPostUrl.includes('REPLACE_WITH_YOUR_DEPLOYED_ID');
 
       if (isDemo) {
-        // ⬇️ เปลี่ยนมาใช้ lang
         showToast(lang === 'th' ? 'บันทึกสำเร็จ (เดโม)' : 'Saved (demo)', 'success');
       } else {
-        await submitReport(CONFIG.appScriptPostUrl, student.coder_id, formData);
-        showToast(t('reportSaved'), 'success');
+        if (mode === 'edit') {
+          if (!reportRow) {
+            showToast(lang === 'th' ? 'ไม่พบหมายเลขแถวของรายงาน' : 'Missing report row index', 'error');
+            return;
+          }
+          await updateReportByRow(CONFIG.appScriptPostUrl, reportRow, formData);
+          showToast(t('saveChanges') || (lang === 'th' ? 'บันทึกการแก้ไขแล้ว' : 'Changes saved'), 'success');
+        } else {
+          await submitReport(CONFIG.appScriptPostUrl, student.coder_id, formData);
+          showToast(t('reportSaved') || (lang === 'th' ? 'บันทึกสำเร็จ' : 'Report saved'), 'success');
+        }
       }
 
       onSuccess();
       onClose();
-    } catch (error) {
-      console.error('Failed to submit report:', error);
-      showToast(t('errorSavingReport'), 'error');
+    } catch (e: any) {
+      console.error(e);
+      showToast(e?.message || t('errorSavingReport') || 'Save failed', 'error');
     } finally {
       setLoading(false);
     }
@@ -110,31 +139,20 @@ export function AddReportModal({ isOpen, student, onClose, onSuccess }: AddRepor
           ✕
         </button>
 
-        <h3 className="text-xl font-bold">{t('addReportTitle')}</h3>
-        {student && (
-          <p className="text-sm text-white/70 mt-1">
-            {/* ⬇️ เปลี่ยน t('lang') → lang */}
-            {lang === 'th' ? 'สำหรับ' : 'For'}: {student.nickname} ({student.coder_id})
-          </p>
-        )}
+        <h3 className="text-xl font-bold">
+          {mode === 'edit'
+            ? (t('editReport') || (lang === 'th' ? 'แก้ไขรายงาน' : 'Edit report'))
+            : (t('addReportTitle') || (lang === 'th' ? 'เพิ่มรายงาน' : 'Add report'))}
+        </h3>
 
-        <form onSubmit={handleSubmit} className="mt-5 grid md:grid-cols-2 gap-4">
-          <Input
-            label={t('date')}
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleInputChange}
-            required
-          />
+        <p className="text-sm text-white/70 mt-1">
+          {lang === 'th' ? 'สำหรับ' : 'For'}: {student.nickname} ({student.coder_id})
+          {mode === 'edit' && reportRow ? ` · Row ${reportRow}` : null}
+        </p>
 
-          <Input
-            label={t('time')}
-            name="time"
-            value={formData.time}
-            onChange={handleInputChange}
-            placeholder="e.g., 09:00–10:00"
-          />
+        <form onSubmit={(e) => { e.preventDefault(); save(); }} className="mt-5 grid md:grid-cols-2 gap-4">
+          <Input label={t('date')} type="date" name="date" value={formData.date} onChange={handleInputChange} required />
+          <Input label={t('time')} name="time" value={formData.time} onChange={handleInputChange} placeholder="e.g., 09:00–10:00" />
 
           <Input
             label={t('topic')}
@@ -207,22 +225,22 @@ export function AddReportModal({ isOpen, student, onClose, onSuccess }: AddRepor
             <Button variant="ghost" onClick={onClose} disabled={loading}>
               {t('cancel')}
             </Button>
-            <Button type="submit" loading={loading}>
-              {t('saveReport')}
+            <Button onClick={save} loading={loading}>
+              {mode === 'edit'
+                ? (t('saveChanges') || (lang === 'th' ? 'บันทึกการเปลี่ยนแปลง' : 'Save changes'))
+                : (t('saveReport') || (lang === 'th' ? 'บันทึกรายงาน' : 'Save report'))}
             </Button>
           </div>
         </form>
 
         <div className="text-xs text-white/60 mt-3">
-          {/* ⬇️ ทั้งสอง ternary เปลี่ยนมาใช้ lang */}
           {isDemo
             ? (lang === 'th'
                 ? 'หมายเหตุ: ยังไม่ได้ตั้งค่า Apps Script การบันทึกนี้เป็นเดโม'
                 : 'Note: App Script URL not set yet. This is a demo save.')
             : (lang === 'th'
-                ? 'ข้อมูลจะถูกส่งไปยัง Apps Script และเพิ่มลงชีตรายงาน'
-                : 'Data will be sent to Google Apps Script and appended to the Reports sheet.')
-          }
+                ? 'ข้อมูลจะถูกส่งไปยัง Apps Script และเพิ่ม/แก้ไขในชีตรายงาน'
+                : 'Data will be sent to Google Apps Script and appended/updated in the Reports sheet.')}
         </div>
       </div>
     </div>
