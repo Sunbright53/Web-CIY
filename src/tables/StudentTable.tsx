@@ -10,13 +10,7 @@ interface StudentTableProps {
   onSort: (key: string) => void;
 }
 
-// Generate short code (matches original logic)
-// function shortCodeFor(student: Student): string {
-//   const name = (student.nickname || '').replace(/[^A-Za-zก-ฮะ-์]/g, '').toUpperCase();
-//   const letters = (name + 'XYZ').slice(0, 3);
-//   const digits = ((student.coder_id || '').match(/\d+/g) || ['000']).join('').slice(-3) || '000';
-//   return letters + digits;
-// }
+
 
 // ----- NEW: map สีของสถานะ -----
 const statusClass = (status: string) => {
