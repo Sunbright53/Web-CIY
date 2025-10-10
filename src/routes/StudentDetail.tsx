@@ -1,3 +1,4 @@
+// src/routes/StudentDetail.tsx
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
@@ -6,7 +7,7 @@ import { useReports } from '@/hooks/useReports';
 import { useI18n } from '@/hooks/useI18n';
 import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/Button';
-import { StudentProfile } from '@/cards/StudentProfile'; 
+import { StudentProfile } from '@/cards/StudentProfile';
 import { ReportsTable } from '@/tables/ReportsTable';
 import { AddReportModal } from '@/modals/AddReportModal';
 import { ProjectListBox } from '@/components/ProjectListBox';
@@ -16,25 +17,25 @@ export function StudentDetail() {
   const navigate = useNavigate();
   const { session } = useAuthStore();
   const { findStudentById } = useStudents();
-  const { getReportsForStudent, loadReports } = useReports();
+
+  // ดึง loading ด้วย (ถ้า hook มีให้) — ถ้าโปรเจกต์เดิมไม่มี ให้ลบ "loading: reportsLoading" ออกได้
+  const { getReportsForStudent, loadReports, loading: reportsLoading } = useReports() as any;
+
   const { t } = useI18n();
   const { showToast } = useToast();
-  
   const [showAddReportModal, setShowAddReportModal] = useState(false);
 
   const student = id ? findStudentById(id) : null;
   const studentReports = student ? getReportsForStudent(student.coder_id) : [];
+  const isCoach = session.role === 'coach';
 
   const handleBack = () => {
-    if (session.role === 'coach') {
-      navigate('/coach');
-    } else {
-      navigate(-1);
-    }
+    if (isCoach) navigate('/coach');
+    else navigate(-1);
   };
 
   const handleAddReport = () => {
-    if (session.role !== 'coach') {
+    if (!isCoach) {
       showToast(t('coachOnlyFeature'), 'warn');
       return;
     }
@@ -42,15 +43,13 @@ export function StudentDetail() {
   };
 
   const handleAddReportSuccess = async () => {
-    await loadReports(); // Reload reports
+    await loadReports?.(); // Reload reports หลัง add สำเร็จ
   };
 
   if (!student) {
     return (
       <div className="glass rounded-2xl p-6 shadow-strong">
-        <div className="text-center text-white/70">
-          {t('studentNotFound')}
-        </div>
+        <div className="text-center text-white/70">{t('studentNotFound')}</div>
       </div>
     );
   }
@@ -68,33 +67,25 @@ export function StudentDetail() {
               <h2 className="text-2xl font-bold">{t('studentDetail')}</h2>
             </div>
 
-            {session.role === 'coach' && (
+            {isCoach && (
               <div>
-                <Button onClick={handleAddReport}>
-                  {t('addReport')}
-                </Button>
+                <Button onClick={handleAddReport}>{t('addReport')}</Button>
               </div>
             )}
           </div>
 
           <div className="space-y-6">
-            {/* ✅ ข้อมูลโปรไฟล์นักเรียน 
-                - บังคับ container ที่เป็น grid ด้านในให้ items-stretch
-                - บังคับการ์ดที่มีคลาส glass ให้สูงเต็มคอลัมน์ */}
-            {/* ✅ Fix alignment so Parent Password aligns with others */}
-<div className="flex flex-col">
-  <div className="grid items-stretch">
-    <StudentProfile student={student} />
-  </div>
-</div>
+            {/* โปรไฟล์นักเรียน */}
+            <div className="flex flex-col">
+              <div className="grid items-stretch">
+                <StudentProfile student={student} />
+              </div>
+            </div>
 
-
-            {/* ✅ Project List Section */}
+            {/* Project List */}
             <div className="glass rounded-2xl p-6 shadow-strong">
               <div className="mb-4">
-                <h3 className="text-lg font-bold">
-                  {t('projectList')}
-                </h3>
+                <h3 className="text-lg font-bold">{t('projectList')}</h3>
               </div>
               <ProjectListBox student={student} />
             </div>
@@ -108,18 +99,20 @@ export function StudentDetail() {
                 </div>
               </div>
 
-              {/* ตารางอยู่ใน ReportsTable */}
-              <ReportsTable 
+              {/* ✅ ส่ง mode, student, loadReports ให้ ReportsTable */}
+              <ReportsTable
                 reports={studentReports}
-                loading={false}
-                mode="student"
+                loading={Boolean(reportsLoading)}            // ถ้า hook เดิมไม่มี loading จะเป็น false
+                mode={isCoach ? 'coach' : 'student'}        // โหมดโค้ช → มีปุ่ม Edit
+                student={student}                            // ให้ modal ใช้
+                loadReports={loadReports}                    // refresh หลัง save
               />
             </div>
           </div>
         </div>
       </main>
 
-      {/* Modal สำหรับ Add Report */}
+      {/* Modal สำหรับ Add Report (ฟลว์เดิม) */}
       <AddReportModal
         isOpen={showAddReportModal}
         student={student}

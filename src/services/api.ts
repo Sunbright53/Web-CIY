@@ -163,7 +163,6 @@ export async function fetchReports(_csvUrlIgnored?: string): Promise<Report[]> {
   const { reports } = await getFromAppScript<{ success: true; reports: any[] }>('reports');
 
   // คุณอาจมี mapper เดิมอยู่แล้ว → แปลงให้ง่าย ๆ ให้เข้ากับ Report
-  // ถ้า mapRawToReports คาดหวัง header CSV ให้ข้าม mapper แล้ว map เองแบบด้านล่าง
   const mapped: Report[] = reports.map((r: any, idx: number) => ({
     row: Number(r.row || idx + 2), // ถ้า Apps Script ไม่ส่ง row ก็เผื่อ index+2
     coder_id: (r['coder_id'] ?? r['Coder ID'] ?? r['No'] ?? '').toString().trim(),
@@ -222,6 +221,7 @@ function randomPassword(length = 6): string {
 }
 
 // ---------- Submit report ----------
+// ---------- Submit report ----------
 export async function submitReport(
   appScriptUrl: string,
   coderId: string,
@@ -230,10 +230,11 @@ export async function submitReport(
   const body = new URLSearchParams();
 
   body.append('action', 'add_report');
+  body.append('key', WEBHOOK_KEY || '');           // ✅ ต้องส่ง key
   body.append('coder_id', coderId);
   body.append('date', (data.date ?? '').trim());
   body.append('time', (data.time ?? '').trim());
-  body.append('course', (data.topic ?? '').trim());
+  body.append('course', (data.topic ?? '').trim()); // topic → course
   body.append('session incharge', (data.session_incharge ?? '').trim());
   body.append('session type', (data.session_type ?? '').trim());
   body.append(
@@ -246,8 +247,12 @@ export async function submitReport(
   body.append('12 Times Progress Report (link)', (data.link12 ?? '').trim());
 
   const res = await fetch(appScriptUrl, { method: 'POST', body });
-  if (!res.ok) throw new Error(`Failed to submit report: ${res.status}`);
+  const json = await res.json().catch(() => ({} as any));
+  if (!res.ok || json?.success === false) {
+    throw new Error(json?.error || `Failed to submit report: ${res.status}`);
+  }
 }
+
 
 // ---------- Submit student ----------
 export async function submitStudent(
@@ -277,41 +282,82 @@ export async function submitStudent(
   }
 }
 
-// ---------- ✅ NEW: Update report by row ----------
+/* =========================================================
+   ✏️ Update Report (Overloaded) — รองรับทั้ง "สไตล์เก่า" และ "สไตล์ใหม่"
+   - แบบเก่า: updateReportByRow(appScriptUrl, row, updates) → throw on error
+   - แบบใหม่: updateReportByRow(row, values) → ใช้ postForm() คืน ApiResponse
+   ========================================================= */
+
+// สำหรับแบบใหม่: กำหนดคีย์ที่อนุญาตให้แก้
+const REPORT_EDIT_KEYS = [
+  'date', 'time', 'topic', 'course',
+  'session_incharge', 'session_type', 'session_report',
+  'feedback', 'next_recommend', 'link12', 'attachments'
+] as const;
+
+type ReportEditPayload = Partial<Record<(typeof REPORT_EDIT_KEYS)[number], string>>;
+
+// Overload signatures
+export async function updateReportByRow(
+  row: number,
+  values: ReportEditPayload
+): Promise<ApiResponse>;
 export async function updateReportByRow(
   appScriptUrl: string,
   row: number,
   updates: Partial<AddReportForm> & { coder_id?: string }
-): Promise<void> {
-  const body = new URLSearchParams();
+): Promise<void>;
 
+// Implementation
+export async function updateReportByRow(a: any, b: any, c?: any): Promise<any> {
+  // ✅ สไตล์ใหม่: updateReportByRow(row, values)
+  if (typeof a === 'number' && typeof b === 'object' && c === undefined) {
+    const row = a as number;
+    const values = b as ReportEditPayload;
+
+    const payload: Record<string, string> = {
+      action: 'update_report',
+      row: String(row),
+      key: WEBHOOK_KEY || '',
+    };
+
+    REPORT_EDIT_KEYS.forEach((k) => {
+      const v = (values as any)[k];
+      if (v !== undefined && v !== null) {
+        const keyForServer = k === 'topic' ? 'course' : k; // map topic → course
+        payload[keyForServer] = String(v).trim();
+      }
+    });
+
+    // ใช้ postForm() → รูปแบบ ApiResponse เดียวกับฟังก์ชันอื่น
+    return postForm(payload);
+  }
+
+  // 🧓 สไตล์เก่า: updateReportByRow(appScriptUrl, row, updates) — คงไว้ไม่ให้กระทบของเดิม
+  const appScriptUrl = a as string;
+  const row = b as number;
+  const updates = c as Partial<AddReportForm> & { coder_id?: string };
+
+  const body = new URLSearchParams();
   body.append('action', 'update_report');
   body.append('row', String(row));
   if (WEBHOOK_KEY) body.append('key', WEBHOOK_KEY);
 
-  // เฉพาะฟิลด์ที่ต้องการอัปเดต
-  if (updates.coder_id != null) body.append('coder_id', (updates.coder_id ?? '').trim());
-  if (updates.date != null) body.append('date', (updates.date ?? '').trim());
-  if (updates.time != null) body.append('time', (updates.time ?? '').trim());
-  if (updates.topic != null) body.append('course', (updates.topic ?? '').trim());
-  if (updates.session_incharge != null) body.append('session incharge', (updates.session_incharge ?? '').trim());
-  if (updates.session_type != null) body.append('session type', (updates.session_type ?? '').trim());
-
-  if ((updates as any).progress_summary != null) {
+  if (updates?.coder_id != null) body.append('coder_id', (updates.coder_id ?? '').trim());
+  if (updates?.date != null) body.append('date', (updates.date ?? '').trim());
+  if (updates?.time != null) body.append('time', (updates.time ?? '').trim());
+  if (updates?.topic != null) body.append('course', (updates.topic ?? '').trim());
+  if (updates?.session_incharge != null) body.append('session incharge', (updates.session_incharge ?? '').trim());
+  if (updates?.session_type != null) body.append('session type', (updates.session_type ?? '').trim());
+  if ((updates as any)?.progress_summary != null) {
     body.append('progress_summary', ((updates as any).progress_summary ?? '').toString().trim());
   }
-  if (updates.session_report != null) {
-    body.append('Session report', (updates.session_report ?? '').trim());
-  }
-  if (updates.feedback != null) {
-    body.append('Feedback', (updates.feedback ?? '').trim());
-  }
-  if (updates.next_recommend != null) {
+  if (updates?.session_report != null) body.append('Session report', (updates.session_report ?? '').trim());
+  if (updates?.feedback != null) body.append('Feedback', (updates.feedback ?? '').trim());
+  if (updates?.next_recommend != null) {
     body.append('Recommendation for next session', (updates.next_recommend ?? '').trim());
   }
-  if (updates.link12 != null) {
-    body.append('12 Times Progress Report (link)', (updates.link12 ?? '').trim());
-  }
+  if (updates?.link12 != null) body.append('12 Times Progress Report (link)', (updates.link12 ?? '').trim());
 
   const res = await fetch(appScriptUrl, { method: 'POST', body });
   const json = await res.json().catch(() => ({} as any));
