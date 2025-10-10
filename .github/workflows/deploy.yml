@@ -1,1 +1,55 @@
+name: Deploy Pages
 
+on:
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build (Vite)
+        run: npm run build
+
+      # ย้ายผล build จาก dist/ → docs/
+      - name: Publish to docs
+        run: |
+          rm -rf docs
+          mkdir docs
+          cp -R dist/* docs/
+          # SPA routing (สำเนา index.html เป็น 404.html)
+          cp docs/index.html docs/404.html
+          # ถ้ามี CNAME ให้คงไว้ (สร้างใหม่ถ้าจำเป็น)
+          if [ -f CNAME ]; then cp CNAME docs/CNAME; fi
+          if [ -f public/CNAME ]; then cp public/CNAME docs/CNAME; fi
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
