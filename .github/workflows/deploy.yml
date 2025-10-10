@@ -1,5 +1,4 @@
 name: Deploy Pages
-
 on:
   push:
     branches: [ main ]
@@ -21,22 +20,13 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Build (Vite)
+      - name: Build (Vite -> docs/)
         run: npm run build
 
-      # ย้ายผล build จาก dist/ → docs/
-      - name: Publish to docs
-        run: |
-          rm -rf docs
-          mkdir docs
-          cp -R dist/* docs/
-          # SPA routing (สำเนา index.html เป็น 404.html)
-          cp docs/index.html docs/404.html
-          # ถ้ามี CNAME ให้คงไว้ (สร้างใหม่ถ้าจำเป็น)
-          if [ -f CNAME ]; then cp CNAME docs/CNAME; fi
-          if [ -f public/CNAME ]; then cp public/CNAME docs/CNAME; fi
+      - name: SPA fallback (404.html)
+        run: cp docs/index.html docs/404.html
 
-      - name: Upload artifact
+      - name: Upload artifact (docs/)
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs
