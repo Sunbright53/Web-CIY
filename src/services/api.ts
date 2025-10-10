@@ -24,6 +24,13 @@ async function postForm(payload: Record<string, string>): Promise<ApiResponse> {
   }
   try {
     const body = new URLSearchParams();
+
+    // ✅ ใส่ key อัตโนมัติถ้ายังไม่ได้ใส่มา
+    const needsKey = !('key' in payload);
+    if (needsKey) {
+      payload.key = (WEBHOOK_KEY || '');
+    }
+
     Object.entries(payload).forEach(([k, v]) => body.append(k, v ?? ''));
 
     const res = await fetch(CONFIG.appScriptPostUrl, { method: 'POST', body });
@@ -36,6 +43,7 @@ async function postForm(payload: Record<string, string>): Promise<ApiResponse> {
     return { success: false, error: e?.message || 'Request failed' };
   }
 }
+
 
 /** ✅ อัปเดตลิงก์ Project List ของนักเรียน */
 export async function updateProjectListLink(
