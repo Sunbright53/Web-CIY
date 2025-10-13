@@ -1,3 +1,5 @@
+// src/components/Header.tsx
+
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useI18n } from '@/hooks/useI18n';

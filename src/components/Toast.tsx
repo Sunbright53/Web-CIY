@@ -1,3 +1,5 @@
+// src/components/Toast.tsx
+
 import React, { useState, useEffect, createContext, useContext } from 'react';
 
 interface ToastMessage {

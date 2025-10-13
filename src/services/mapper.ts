@@ -1,8 +1,11 @@
+// src/services/mapper.ts
 import { Student, Report } from '@/types';
 
 // ===== helpers =====
-function pick(obj: Record<string, any>, keys: string[] = []): string {
-  for (const k of keys) {
+// รองรับการส่งทั้ง string เดี่ยว หรือ string[] ได้
+function pick(obj: Record<string, any>, keys: string | string[] = []): string {
+  const arr = Array.isArray(keys) ? keys : [keys];
+  for (const k of arr) {
     if (!k) continue;
     const v = (obj[k] ?? '').toString().trim();
     if (v) return v;
@@ -10,8 +13,9 @@ function pick(obj: Record<string, any>, keys: string[] = []): string {
   return '';
 }
 
-function rVal(row: Record<string, any>, candidates: string[]): string {
-  for (const key of candidates) {
+function rVal(row: Record<string, any>, candidates: string | string[]): string {
+  const arr = Array.isArray(candidates) ? candidates : [candidates];
+  for (const key of arr) {
     if (key in row && typeof row[key] !== 'undefined') {
       const v = (row[key] ?? '').toString().trim();
       if (v !== '') return v;
@@ -28,13 +32,15 @@ export const HEADER_MAPPINGS = {
     fullname: ["Fullname", "Full name", "ชื่อ-นามสกุล", "ชื่อจริง"],
     status: ["Status", "สถานะ", "Enrollment Status"],
     course_status: ["Status of course", "Course", "คอร์ส", "course_status"],
+    // อันนี้เป็น string เดี่ยวก็ใช้ได้ เพราะ pick() รองรับ
+    course: "Course",
     program: ["Program", "โปรแกรม", "โปรแกรมเรียน"],
     parent_password: ["Parent Password", "Parent pass", "Password", "รหัสผู้ปกครอง"],
     project_list_url: [
-      "Project List", 
-      "ProjectListURL", 
-      "Project Link", 
-      "โปรเจคลิงก์", 
+      "Project List",
+      "ProjectListURL",
+      "Project Link",
+      "โปรเจคลิงก์",
       "ลิงก์โปรเจค"
     ]
   },
@@ -59,7 +65,7 @@ export const HEADER_MAPPINGS = {
     coach_name: ["coach_name", "coach _name", "coach name", "coach", "Coach Name"],
     attachments: ["attachments", "attachment", "แนบ", "Attachment"]
   },
-  // ✅ NEW: สำหรับแท็บ Coache_login
+  // ✅ สำหรับแท็บ Coache_login
   coaches: {
     coach_id: ["coach_id", "Coach ID", "id", "ID", "โค้ช"],
     password: ["password", "pass", "รหัสผ่าน"],
@@ -67,41 +73,34 @@ export const HEADER_MAPPINGS = {
   }
 };
 
-
-
-// ===== students =====
-
-// mapper.ts
-
 // ===== students =====
 export function mapRawToStudents(raw: Record<string, any>[]): Student[] {
   const M = HEADER_MAPPINGS.students;
-  return raw.map((r) => {
+  return raw.map(r => {
     const parent_password = pick(r, M.parent_password);
     return {
       coder_id:        pick(r, M.coder_id),
       nickname:        pick(r, M.nickname),
       fullname:        pick(r, M.fullname),
       status:          pick(r, M.status),
-      course_status:   pick(r, M.course_status),
+      course:          pick(r, M.course) ?? '',
+      course_status:   pick(r, M.course_status) ?? '',
       program:         pick(r, M.program),
-      parent_password,                   // ใช้ค่าที่ map มาแล้ว
+      parent_password,                         // main field
       project_list_url: pick(r, M.project_list_url),
 
-      // เผื่อโค้ดเก่าอ้าง parent_pass (backward compat)
+      // option: backward compatibility (ถ้าใน types กำหนดเป็น optional)
       parent_pass: parent_password,
     };
   });
 }
-
-
 
 // ===== reports =====
 export function mapRawToReports(rawData: Record<string, any>[]): Report[] {
   const H = HEADER_MAPPINGS.reports;
   return rawData
     .map((r, idx) => ({
-      // ✅ เพิ่ม row ให้รู้เลขแถวจริงในชีต (แถว 1 = header → ข้อมูลเริ่มที่แถว 2)
+      // แถวจริงในชีต (header = แถว 1 → ข้อมูลเริ่มแถว 2)
       row: idx + 2,
 
       coder_id: rVal(r, H.coder_id),
@@ -114,7 +113,8 @@ export function mapRawToReports(rawData: Record<string, any>[]): Report[] {
       feedback: rVal(r, H.feedback),
       next_recommend: rVal(r, H.next_reco) || rVal(r, H.next_plan),
       link12: rVal(r, H.link12) || rVal(r, H.attachments),
-      // legacy
+
+      // legacy fields
       course: rVal(r, H.course),
       lesson: rVal(r, H.lesson),
       progress_summary: rVal(r, H.progress_summary),
@@ -127,7 +127,7 @@ export function mapRawToReports(rawData: Record<string, any>[]): Report[] {
     .filter(x => x.coder_id);
 }
 
-// ✅ NEW: coaches (ใช้เฉพาะพาสเวิร์ดจากชีต Coache_login)
+// ===== coaches =====
 export type Coach = { coach_id: string; password: string; name: string };
 
 export function mapRawToCoaches(rawData: Record<string, any>[]): Coach[] {
@@ -138,6 +138,21 @@ export function mapRawToCoaches(rawData: Record<string, any>[]): Coach[] {
       password: pick(r, M.password),
       name: pick(r, M.name)
     }))
-    // เดิม: .filter(c => c.coach_id && c.password)
-    .filter(c => c.password); // ✅ เอาแค่พาสพอ
+    // เอาเฉพาะที่มี password
+    .filter(c => c.password);
+}
+
+// ใช้ตอน fetch จาก Apps Script JSON ตรง ๆ
+export function mapStudent(raw: any): Student {
+  return {
+    coder_id:        raw.coder_id ?? raw.No ?? '',
+    nickname:        raw.nickname ?? raw.Name ?? '',
+    fullname:        raw.fullname ?? raw.Fullname ?? '',
+    status:          raw.status ?? raw.Status ?? '',
+    course:          raw.course ?? raw.Course ?? '',
+    course_status:   raw.course_status ?? raw.Course ?? raw.course ?? '',
+    program:         raw.program ?? raw.Program ?? '',
+    parent_password: raw.parent_password ?? raw['Parent Password'] ?? raw.Password ?? '',
+    project_list_url: raw.project_list_url ?? ''
+  };
 }

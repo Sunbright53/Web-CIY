@@ -1,26 +1,35 @@
+// src/hooks/useStudents.ts
+
 import { useState, useEffect } from 'react';
 import { Student, SortState } from '@/types';
-import { fetchStudents } from '@/services/api';
 import { CONFIG } from '@/config';
+import { mapStudent } from "@/services/mapper"; 
+
 
 export function useStudents() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadStudents = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await fetchStudents(CONFIG.studentsCsv);
-      setStudents(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      console.error('Failed to load students:', err);
-    } finally {
-      setLoading(false);
+
+const loadStudents = async () => {
+  try {
+    setLoading(true);
+   const res = await fetch(`${CONFIG.appScriptGetUrl}?action=students`);
+    const json = await res.json();
+    if (json.success) {
+      // ✅ map project_list_url ให้เข้ารูปแบบ Student interface
+      const mapped = json.students.map(mapStudent);
+      setStudents(mapped);
     }
-  };
+  } catch (err) {
+    console.error("Failed to load students:", err);
+    setError("โหลดข้อมูลไม่สำเร็จ");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     loadStudents();

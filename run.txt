@@ -1,0 +1,8 @@
+npm install
+
+ถ้าจะรัน	                    คำสั่งที่ถูกต้อง
+เปิด dev server	                npm run dev
+build production	           npm run build
+preview	npm                    run preview
+
+action=students -> check input 

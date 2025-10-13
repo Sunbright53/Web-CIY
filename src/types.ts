@@ -5,6 +5,7 @@ export interface Student {
   fullname: string;
   status: string;
   course_status: string;
+  course: string;            // ✅ ต้องมี
   program?: string;
   parent_password: string;
   password?: string; // For backward compatibility

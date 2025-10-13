@@ -1,8 +1,8 @@
 // src/config.ts
 export const CONFIG = {
   // ✅ ใช้ Apps Script เป็นแหล่ง "อ่าน" หลัก (students/reports)
-  appScriptGetUrl:  "https://script.google.com/macros/s/AKfycbzJzqxo3RYNDkyNl8UanndGmmhEnEHD1re8fksO0PzltvfZxS-Yce2-uMFQ4-MHr1-P/exec",
-  appScriptPostUrl: "https://script.google.com/macros/s/AKfycbzJzqxo3RYNDkyNl8UanndGmmhEnEHD1re8fksO0PzltvfZxS-Yce2-uMFQ4-MHr1-P/exec",
+  appScriptGetUrl:  "https://script.google.com/macros/s/AKfycbwGR9XMRHOW1YHjFtHbcgIVIT3PVWHlCBlZ05DYDJ5lFdiIZ9e1uAfRFCHqJXFYqUSO/exec",
+  appScriptPostUrl: "https://script.google.com/macros/s/AKfycbwGR9XMRHOW1YHjFtHbcgIVIT3PVWHlCBlZ05DYDJ5lFdiIZ9e1uAfRFCHqJXFYqUSO/exec",
 
   // 🧰 (ยังเก็บ CSV เดิมไว้ใช้กับ Coaches หรือ fallback ถ้าจำเป็น)
   studentsCsv: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT513ZZLUQp5zSHfkcfblFC5G0XrLUUJN6PBdfikUYr938X89Z_04AoN-yOXgczhd5kEdRzmDFjcB5E/pub?gid=0&single=true&output=csv",

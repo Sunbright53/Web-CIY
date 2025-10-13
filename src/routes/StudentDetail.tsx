@@ -1,5 +1,5 @@
 // src/routes/StudentDetail.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useStudents } from '@/hooks/useStudents';
@@ -16,18 +16,24 @@ export function StudentDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { session } = useAuthStore();
-  const { findStudentById } = useStudents();
 
-  // ดึง loading ด้วย (ถ้า hook มีให้) — ถ้าโปรเจกต์เดิมไม่มี ให้ลบ "loading: reportsLoading" ออกได้
+  // ⬇️ ดึง loadStudents มาด้วย
+  const { findStudentById, loadStudents } = useStudents();
+
   const { getReportsForStudent, loadReports, loading: reportsLoading } = useReports() as any;
 
   const { t } = useI18n();
   const { showToast } = useToast();
   const [showAddReportModal, setShowAddReportModal] = useState(false);
 
+  // ⬇️ โหลดข้อมูลนักเรียนใหม่ทุกครั้งที่เปิดหน้านี้ (หรือ id เปลี่ยน)
+  useEffect(() => {
+    loadStudents();
+  }, [id]);
+
   const student = id ? findStudentById(id) : null;
   const studentReports = student ? getReportsForStudent(student.coder_id) : [];
-  const isCoach = session.role === 'coach';
+  const isCoach = session?.role === 'coach';
 
   const handleBack = () => {
     if (isCoach) navigate('/coach');
@@ -56,7 +62,6 @@ export function StudentDetail() {
 
   return (
     <div className="flex flex-col h-screen">
-      {/* ✅ ส่วนที่สกรอลล์ได้ทั้งหน้า */}
       <main className="flex-1 overflow-y-auto scrollable">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
@@ -87,7 +92,8 @@ export function StudentDetail() {
               <div className="mb-4">
                 <h3 className="text-lg font-bold">{t('projectList')}</h3>
               </div>
-              <ProjectListBox student={student} />
+              {/* ⬇️ เมื่ออัปเดตแล้ว ให้โหลด students ใหม่ */}
+              <ProjectListBox student={student} onUpdated={loadStudents} />
             </div>
 
             {/* ตารางรายงานทั้งหมด */}
@@ -99,20 +105,18 @@ export function StudentDetail() {
                 </div>
               </div>
 
-              {/* ✅ ส่ง mode, student, loadReports ให้ ReportsTable */}
               <ReportsTable
                 reports={studentReports}
-                loading={Boolean(reportsLoading)}            // ถ้า hook เดิมไม่มี loading จะเป็น false
-                mode={isCoach ? 'coach' : 'student'}        // โหมดโค้ช → มีปุ่ม Edit
-                student={student}                            // ให้ modal ใช้
-                loadReports={loadReports}                    // refresh หลัง save
+                loading={Boolean(reportsLoading)}
+                mode={isCoach ? 'coach' : 'student'}
+                student={student}
+                loadReports={loadReports}
               />
             </div>
           </div>
         </div>
       </main>
 
-      {/* Modal สำหรับ Add Report (ฟลว์เดิม) */}
       <AddReportModal
         isOpen={showAddReportModal}
         student={student}

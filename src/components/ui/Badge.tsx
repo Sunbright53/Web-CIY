@@ -1,3 +1,4 @@
+// src/components/ui/Badge.tsx
 import { useEffect, useRef } from 'react';
 
 interface FloatingHScrollReturn {

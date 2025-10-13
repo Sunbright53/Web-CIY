@@ -1,3 +1,5 @@
+// src/tables/StudentTable.tsx
+
 import { useNavigate } from 'react-router-dom';
 import { Student, SortState } from '@/types';
 import { Badge } from '@/components/ui/Badge';
