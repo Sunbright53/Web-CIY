@@ -217,3 +217,9 @@ html[lang="en"] body {
 }
 
 }
+
+@media (max-width: 423px) {
+  #root {
+    width: 423px; /* ล็อกความกว้างเท่ากันหมด */
+  }
+}

@@ -65,6 +65,12 @@ export const translations = {
     feedback: 'ข้อเสนอแนะ',
     nextRecommendation: 'แผนครั้งถัดไป',
     progressLink: 'ลิงก์ Project หรือรายงาน 12 ครั้ง (link)',
+    sortBy: "เรียงตาม",
+    latest: "ล่าสุด",
+    oldest: "เก่าสุด",
+    "readMore": "อ่านเพิ่ม",
+    "showLess": "ย่อ",
+  
 
     // Common
     loading: 'กำลังโหลด...',
@@ -176,6 +182,11 @@ export const translations = {
     feedback: 'Feedback',
     nextRecommendation: 'Recommendation for next session',
     progressLink: 'Project or 12 Times Progress Report (link)',
+    sortBy: "Sort by",
+    latest: "Latest",
+    oldest: "Oldest",
+    "readMore": "Read more",
+    "showLess": "Show less",
 
     // Common
     loading: 'Loading...',
