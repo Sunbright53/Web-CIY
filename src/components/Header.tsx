@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useI18n } from '@/hooks/useI18n';
 import { Button } from './ui/Button';
-
+import { Link } from 'react-router-dom';
 
 export function Header() {
   const navigate = useNavigate();
@@ -44,18 +44,20 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 bg-white/70 backdrop-blur border-b border-sky-200">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img 
-            src="https://static.wixstatic.com/media/437090_cd922165d6ba4d568dde8680dff0b0df~mv2.png/v1/fill/w_249,h_63,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/437090_cd922165d6ba4d568dde8680dff0b0df~mv2.png" 
-            alt="CIY Logo" 
-            className="h-9 w-auto"
-            onError={(e) => {
-              e.currentTarget.src = '';
-              e.currentTarget.alt = 'Logo failed to load';
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-        </div>
+       <div className="flex items-center gap-3">
+  <Link to="/" className="hover:opacity-80 transition-opacity">
+    <img 
+      src="https://static.wixstatic.com/media/437090_cd922165d6ba4d568dde8680dff0b0df~mv2.png/v1/fill/w_249,h_63,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/437090_cd922165d6ba4d568dde8680dff0b0df~mv2.png" 
+      alt="CIY Logo" 
+      className="h-9 w-auto"
+      onError={(e) => {
+        e.currentTarget.src = '';
+        e.currentTarget.alt = 'Logo failed to load';
+        e.currentTarget.style.display = 'none';
+      }}
+    />
+  </Link>
+</div>
         
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={() => handleNavigation('/')}>
