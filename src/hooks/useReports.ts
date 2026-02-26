@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Report } from '@/types';
 import { fetchReports } from '@/services/api';
-import { CONFIG } from '@/config';
+
 
 // Date parsing helper (matches original logic)
 function dateFromAny(s: string): Date | null {
@@ -33,7 +33,7 @@ export function useReports() {
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchReports(CONFIG.reportsCsv);
+      const data = await fetchReports();
       setReports(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
