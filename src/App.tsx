@@ -108,7 +108,7 @@ export function StudentDetail() {
             onClick={() => setShowCalendarModal(true)}
           >
             <span>🗓️</span>
-            <span>เช็ควันเรียน</span> 
+            <span>{t('checkclass')}</span> 
           </Button>
 
           {/* ✅ ปุ่มจองเรียนเดิม (สีน้ำเงิน) */}
@@ -128,7 +128,7 @@ export function StudentDetail() {
             onClick={() => setShowCancelModal(true)}
           >
             <span>🚫</span>
-            <span>ยกเลิกคาบเรียน</span> 
+            <span>{t('canclesection')}</span> 
           </Button>
 
           {session.role === 'coach' && (

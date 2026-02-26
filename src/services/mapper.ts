@@ -2,7 +2,6 @@
 import { Student, Report } from '@/types';
 
 // ===== helpers =====
-// รองรับการส่งทั้ง string เดี่ยว หรือ string[] ได้
 function pick(obj: Record<string, any>, keys: string | string[] = []): string {
   const arr = Array.isArray(keys) ? keys : [keys];
   for (const k of arr) {
@@ -15,9 +14,16 @@ function pick(obj: Record<string, any>, keys: string | string[] = []): string {
 
 function rVal(row: Record<string, any>, candidates: string | string[]): string {
   const arr = Array.isArray(candidates) ? candidates : [candidates];
-  for (const key of arr) {
-    if (key in row && typeof row[key] !== 'undefined') {
-      const v = (row[key] ?? '').toString().trim();
+  const rowKeys = Object.keys(row); // ดึง Key ทั้งหมดใน row ออกมา
+
+  for (const candidate of arr) {
+    // หา key ใน row ที่ match กับ candidate แบบไม่สนตัวเล็กใหญ่/ช่องว่าง
+    const targetKey = rowKeys.find(rk => 
+      rk.toLowerCase().trim() === candidate.toLowerCase().trim()
+    );
+
+    if (targetKey && typeof row[targetKey] !== 'undefined') {
+      const v = (row[targetKey] ?? '').toString().trim();
       if (v !== '') return v;
     }
   }
@@ -32,17 +38,10 @@ export const HEADER_MAPPINGS = {
     fullname: ["Fullname", "Full name", "ชื่อ-นามสกุล", "ชื่อจริง"],
     status: ["Status", "สถานะ", "Enrollment Status"],
     course_status: ["Status of course", "Course", "คอร์ส", "course_status"],
-    // อันนี้เป็น string เดี่ยวก็ใช้ได้ เพราะ pick() รองรับ
     course: "Course",
     program: ["Program", "โปรแกรม", "โปรแกรมเรียน"],
     parent_password: ["Parent Password", "Parent pass", "Password", "รหัสผู้ปกครอง"],
-    project_list_url: [
-      "Project List",
-      "ProjectListURL",
-      "Project Link",
-      "โปรเจคลิงก์",
-      "ลิงก์โปรเจค"
-    ]
+    project_list_url: ["Project List", "ProjectListURL", "Project Link", "โปรเจคลิงก์", "ลิงก์โปรเจค"]
   },
   reports: {
     coder_id: ["coder_id", "Coder ID", "id", "No", "รหัสนักเรียน", "coder id"],
@@ -52,10 +51,14 @@ export const HEADER_MAPPINGS = {
     incharge: ["session incharge", "Session incharge", "session in-charge", "incharge", "coach", "Coach", "coach_name", "Coach Name", "ผู้สอน", "ผู้รับผิดชอบคาบ"],
     type: ["session type", "Session type", "class type", "ประเภทคาบ"],
     report: ["session report", "Session report", "report", "progress_summary", "Progress Summary", "summary", "สรุป"],
-    feedback: ["Feedback","feedback", "ความคิดเห็น", "ข้อเสนอแนะ", "comment", "คอมเมนต์"],
-    next_reco: ["Recommandation for next session", "Recommendation for next session", "next recommendation", "next session plan", "next_plan", "Next Plan", "แผนถัดไป"],
+    
+    // ✅ เพิ่มตัวดักจับกรณีชื่อ Header มีช่องว่าง หรือใช้คำใกล้เคียง
+    feedback: ["Feedback", "feedback", "Feedback ", "feedback", "ความคิดเห็น", "ข้อเสนอแนะ", "comment", "คอมเมนต์"],
+    
+    // ✅ ดักจับคำสะกดผิดที่เจอ และแผนการสอนครั้งถัดไป
+    next_reco: ["Recommendation for next session", "Recommandation for next session", "next recommendation", "Next Recommendation", "next_recommend", "next session plan", "next_plan", "แผนถัดไป", "Next Plan"],
+    
     link12: ["12 Times Progress Report (link)", "12 times link", "progress link", "link", "attachments", "attachment", "แนบ"],
-    // legacy fallbacks
     course: ["course", "Course", "topic", "Topic"],
     lesson: ["lesson", "Lesson", "บทเรียน"],
     progress_summary: ["progress_summary", "summary", "สรุป", "Session report"],
@@ -65,7 +68,6 @@ export const HEADER_MAPPINGS = {
     coach_name: ["coach_name", "coach _name", "coach name", "coach", "Coach Name"],
     attachments: ["attachments", "attachment", "แนบ", "Attachment"]
   },
-  // ✅ สำหรับแท็บ Coache_login
   coaches: {
     coach_id: ["coach_id", "Coach ID", "id", "ID", "โค้ช"],
     password: ["password", "pass", "รหัสผ่าน"],
@@ -86,11 +88,9 @@ export function mapRawToStudents(raw: Record<string, any>[]): Student[] {
       course:          pick(r, M.course) ?? '',
       course_status:   pick(r, M.course_status) ?? '',
       program:         pick(r, M.program),
-      parent_password,                         // main field
+      parent_password,
       project_list_url: pick(r, M.project_list_url),
-
-      // option: backward compatibility (ถ้าใน types กำหนดเป็น optional)
-      parent_pass: parent_password,
+      parent_pass:     parent_password,
     };
   });
 }
@@ -99,31 +99,38 @@ export function mapRawToStudents(raw: Record<string, any>[]): Student[] {
 export function mapRawToReports(rawData: Record<string, any>[]): Report[] {
   const H = HEADER_MAPPINGS.reports;
   return rawData
-    .map((r, idx) => ({
-      // แถวจริงในชีต (header = แถว 1 → ข้อมูลเริ่มแถว 2)
-      row: idx + 2,
+    .map((r, idx) => {
+      // ดึงค่าออกมาตรวจสอบก่อนส่งออก
+      const fb = rVal(r, H.feedback);
+      const nr = rVal(r, H.next_reco);
 
-      coder_id: rVal(r, H.coder_id),
-      date: rVal(r, H.date),
-      time: rVal(r, H.time),
-      topic: rVal(r, H.topic) || rVal(r, H.course),
-      session_incharge: rVal(r, H.incharge) || rVal(r, H.coach_name),
-      session_type: rVal(r, H.type) || rVal(r, H.course),
-      session_report: rVal(r, H.report) || rVal(r, H.progress_summary),
-      feedback: rVal(r, H.feedback),
-      next_recommend: rVal(r, H.next_reco) || rVal(r, H.next_plan),
-      link12: rVal(r, H.link12) || rVal(r, H.attachments),
+      return {
+        row: idx + 2,
+        coder_id: rVal(r, H.coder_id),
+        date: rVal(r, H.date),
+        time: rVal(r, H.time),
+        topic: rVal(r, H.topic) || rVal(r, H.course),
+        session_incharge: rVal(r, H.incharge) || rVal(r, H.coach_name),
+        session_type: rVal(r, H.type) || rVal(r, H.course),
+        session_report: rVal(r, H.report) || rVal(r, H.progress_summary),
+        
+        // ✅ ถ้าดึงค่าได้เป็นสายอักขระว่าง ให้ส่งเป็น undefined เพื่อให้ UI แสดง '--'
+        feedback: fb !== '' ? fb : undefined,
+        next_recommend: nr !== '' ? nr : (rVal(r, H.next_plan) || undefined),
+        
+        link12: rVal(r, H.link12) || rVal(r, H.attachments),
 
-      // legacy fields
-      course: rVal(r, H.course),
-      lesson: rVal(r, H.lesson),
-      progress_summary: rVal(r, H.progress_summary),
-      skills: rVal(r, H.skills),
-      homework: rVal(r, H.homework),
-      next_plan: rVal(r, H.next_plan),
-      coach_name: rVal(r, H.coach_name),
-      attachments: rVal(r, H.attachments)
-    }))
+        // legacy fields
+        course: rVal(r, H.course),
+        lesson: rVal(r, H.lesson),
+        progress_summary: rVal(r, H.progress_summary),
+        skills: rVal(r, H.skills),
+        homework: rVal(r, H.homework),
+        next_plan: rVal(r, H.next_plan),
+        coach_name: rVal(r, H.coach_name),
+        attachments: rVal(r, H.attachments)
+      };
+    })
     .filter(x => x.coder_id);
 }
 
@@ -138,11 +145,9 @@ export function mapRawToCoaches(rawData: Record<string, any>[]): Coach[] {
       password: pick(r, M.password),
       name: pick(r, M.name)
     }))
-    // เอาเฉพาะที่มี password
     .filter(c => c.password);
 }
 
-// ใช้ตอน fetch จาก Apps Script JSON ตรง ๆ
 export function mapStudent(raw: any): Student {
   return {
     coder_id:        raw.coder_id ?? raw.No ?? '',
