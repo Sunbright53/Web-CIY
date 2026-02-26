@@ -88,3 +88,43 @@ export interface AddStudentForm {
   program?: string;
   parent_password: string;
 }
+
+// --- Booking System (ปรับให้เข้ากับระบบเดิม) ---
+
+export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'attended';
+
+export interface Booking {
+  // ✅ แถวจริงในชีต (เหมือน Report interface)
+  row?: number; 
+
+  booking_id: string;      // ID ของการจอง
+  coder_id: string;       // เชื่อมกับ Student.coder_id
+  student_nickname: string; // เก็บเผื่อไว้แสดงผลเร็วๆ
+  date: string;           // วันที่จอง (YYYY-MM-DD)
+  time_slot: string;      // ช่วงเวลา เช่น "10:00 - 12:00"
+  coach_name?: string;    // โค้ชที่ดูแลในเซสชั่นนั้น
+  status: BookingStatus;
+  branch?: string;        // สาขา (ถ้ามี)
+  note?: string;          // หมายเหตุจากผู้ปกครอง
+  created_at: string;
+}
+
+/**
+ * Interface สำหรับหน้าจอง (หน้าบ้าน)
+ */
+export interface BookingSlot {
+  id: string;
+  time: string;           // เช่น "13:00"
+  available_seats: number;
+  max_seats: number;
+}
+
+/**
+ * Form สำหรับหน้าสร้างการจองใหม่
+ */
+export interface AddBookingForm {
+  coder_id: string;
+  date: string;
+  time_slot: string;
+  note?: string;
+}

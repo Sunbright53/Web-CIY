@@ -31,6 +31,7 @@ export const translations = {
     masterPassLabel: 'รหัสผ่านหลัก',
 
     // Students
+    booking: 'จองเวลาเรียน',
     allStudents: 'รายชื่อนักเรียนทั้งหมด',
     searchPlaceholder: 'ค้นหา: Coder ID / ชื่อเล่น / ชื่อจริง',
     clear: 'ล้าง',
@@ -148,6 +149,7 @@ export const translations = {
     masterPassLabel: 'Master Password',
 
     // Students
+    booking: 'Booking section',
     allStudents: 'All Students',
     searchPlaceholder: 'Search: Coder ID / Nickname / Name',
     clear: 'Clear',

@@ -9,6 +9,9 @@ import { Button } from '@/components/ui/Button';
 import { StudentProfile } from '@/cards/StudentProfile';
 import { ReportsTable } from '@/tables/ReportsTable';
 import { AddReportModal } from '@/modals/AddReportModal';
+import { BookingModal } from '@/modals/BookingModal'; 
+import { CancelBookingModal } from '@/modals/CancelBookingModal';
+import { AttendanceCalendarModal } from '@/modals/AttendanceCalendarModal'; // ✅ 1. Import Modal ปฏิทินเพิ่มเข้ามา
 
 import { useAuthStore } from '@/store/authStore';
 import { useStudents } from '@/hooks/useStudents';
@@ -19,15 +22,13 @@ import { Landing } from '@/routes/Landing';
 import ParentLogin from '@/routes/ParentLogin';
 
 import CoachLogin from '@/routes/CoachLogin';
-import { Students } from '@/routes/Students'; // ✅ เอาหน้า Students มาแสดงเมื่อเป็น coach
+import { Students } from '@/routes/Students'; 
 
 function CoachRoute() {
   const { session } = useAuthStore();
-  // ถ้าเป็น coach แล้ว => แสดง Students, ไม่งั้น => ส่งไปหน้า Login
   return session.role === 'coach' ? <Students /> : <Navigate to="/coach-login" replace />;
 }
 
-// ---------- App (มี Router ครบ) ----------
 export default function App() {
   return (
     <ToastProvider>
@@ -37,8 +38,8 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/parent" element={<ParentLogin />} />
-            <Route path="/coach" element={<CoachRoute />} />        {/* ✅ gate */}
-            <Route path="/coach-login" element={<CoachLogin />} />   {/* ✅ หน้า login */}
+            <Route path="/coach" element={<CoachRoute />} />
+            <Route path="/coach-login" element={<CoachLogin />} />
             <Route path="/student/:id" element={<StudentDetail />} />
           </Routes>
         </main>
@@ -59,12 +60,15 @@ export function StudentDetail() {
   const { showToast } = useToast();
 
   const [showAddReportModal, setShowAddReportModal] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false); 
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showCalendarModal, setShowCalendarModal] = useState(false); // ✅ 2. เพิ่ม State สำหรับเปิด/ปิด Calendar Modal
 
   const student = id ? findStudentById(id) : null;
   const studentReports = student ? getReportsForStudent(student.coder_id) : [];
 
   const handleBack = () => {
-    if (session.role === 'coach') navigate('/coach'); // ✅ กลับไปพื้นที่ coach
+    if (session.role === 'coach') navigate('/coach'); 
     else navigate(-1);
   };
 
@@ -96,9 +100,41 @@ export function StudentDetail() {
           <h2 className="text-2xl font-bold">{t('studentDetail')}</h2>
         </div>
 
-        {session.role === 'coach' && (
-          <Button onClick={handleAddReport}>{t('addReport')}</Button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {/* ✅ 3. ปุ่มเช็ควันเรียน (สีเขียว/ขาว) */}
+          <Button 
+            variant="ghost" 
+            className="bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 flex items-center gap-2"
+            onClick={() => setShowCalendarModal(true)}
+          >
+            <span>🗓️</span>
+            <span>เช็ควันเรียน</span> 
+          </Button>
+
+          {/* ✅ ปุ่มจองเรียนเดิม (สีน้ำเงิน) */}
+          <Button 
+            variant="ghost" 
+            className="bg-blue-600/20 border border-blue-500/50 hover:bg-blue-600/40 text-blue-100 flex items-center gap-2"
+            onClick={() => setShowBookingModal(true)}
+          >
+            <span>📅</span>
+            <span>{t('booking')}</span> 
+          </Button>
+
+          {/* ✅ ปุ่มยกเลิกคาบเรียน (สีแดงอ่อน) */}
+          <Button 
+            variant="ghost" 
+            className="bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 text-red-400 flex items-center gap-2"
+            onClick={() => setShowCancelModal(true)}
+          >
+            <span>🚫</span>
+            <span>ยกเลิกคาบเรียน</span> 
+          </Button>
+
+          {session.role === 'coach' && (
+            <Button onClick={handleAddReport}>{t('addReport')}</Button>
+          )}
+        </div>
       </div>
 
       <StudentProfile student={student} />
@@ -119,6 +155,26 @@ export function StudentDetail() {
         student={student}
         onClose={() => setShowAddReportModal(false)}
         onSuccess={handleAddReportSuccess}
+      />
+
+      <BookingModal
+        isOpen={showBookingModal}
+        student={student}
+        onClose={() => setShowBookingModal(false)}
+      />
+
+      <CancelBookingModal
+        isOpen={showCancelModal}
+        student={student}
+        onClose={() => setShowCancelModal(false)}
+      />
+
+      {/* ✅ 4. ใส่ Component AttendanceCalendarModal ไว้ท้ายสุด */}
+      <AttendanceCalendarModal
+        isOpen={showCalendarModal}
+        onClose={() => setShowCalendarModal(false)}
+        reports={studentReports}
+        nickname={student.nickname}
       />
     </div>
   );
