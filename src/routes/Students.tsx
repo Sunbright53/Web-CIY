@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { StudentTable } from '@/tables/StudentTable';
 import { AddStudentModal } from '@/modals/AddStudentModal';
+import { CoachScheduleModal } from '@/modals/CoachScheduleModal';
 import { CONFIG } from '@/config';
-import { Menu } from 'lucide-react'; // ใช้ icon สามขีด
+import { Menu, ClipboardList } from 'lucide-react';
 
 export function Students() {
   const { session } = useAuthStore();
@@ -18,6 +19,7 @@ export function Students() {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showCoachSchedule, setShowCoachSchedule] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const filteredStudents = useStudentSearch(students, searchQuery);
@@ -57,25 +59,17 @@ export function Students() {
 
   return (
     <div className="space-y-6">
-      {/* หัวข้อ + Toolbar */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xl font-bold">{t('allStudents')}</h3>
-          
-          {/* ปุ่ม Hamburger เฉพาะจอเล็ก */}
           <div className="md:hidden">
-            <Button
-              variant="ghost"
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="p-2"
-            >
+            <Button variant="ghost" onClick={() => setMenuOpen(!menuOpen)} className="p-2">
               <Menu className="w-6 h-6" />
             </Button>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Search Box ยืดได้ */}
           <div className="flex-1 min-w-[200px]">
             <Input
               value={searchQuery}
@@ -85,76 +79,50 @@ export function Students() {
             />
           </div>
 
-          {/* ปุ่ม Toolbar จอใหญ่ */}
           <div className="hidden md:flex items-center gap-2">
-            <Button variant="ghost" onClick={handleClearSearch}>
-              {t('clear')}
-            </Button>
-
+            <Button variant="ghost" onClick={handleClearSearch}>{t('clear')}</Button>
             <span className="hidden md:inline-block w-px h-6 bg-white/10 mx-1" />
 
-            <Button variant="ghost" onClick={() => handleOpenSheet('students')}>
-              {t('openStudents')}
+            {/* ✅ ปุ่มตารางโค้ช จอคอม: สีอ่อนลงเมื่อ Hover */}
+            <Button 
+              variant="ghost" 
+              onClick={() => setShowCoachSchedule(true)}
+              className="bg-slate-800 text-white flex items-center gap-2 hover:bg-slate-800/80 transition-all active:scale-95 shadow-sm"
+            >
+              <ClipboardList className="w-4 h-4" />
+              <span>ตารางโค้ช</span>
             </Button>
 
-            <Button variant="ghost" onClick={() => handleOpenSheet('reports')}>
-              {t('openReports')}
-            </Button>
-
-            <Button variant="primary" onClick={handleAddStudent}>
-              {t('addStudent')}
-            </Button>
+            <Button variant="ghost" onClick={() => handleOpenSheet('students')}>{t('openStudents')}</Button>
+            <Button variant="ghost" onClick={() => handleOpenSheet('reports')}>{t('openReports')}</Button>
+            <Button variant="primary" onClick={handleAddStudent}>{t('addStudent')}</Button>
           </div>
         </div>
       </div>
 
-      {/* เมนูแบบ Slide ลงมา (เฉพาะจอเล็ก) */}
       {menuOpen && (
         <div className="md:hidden bg-white rounded-xl shadow-lg p-4 space-y-3">
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={handleClearSearch}
+          <Button variant="ghost" className="w-full justify-start" onClick={handleClearSearch}>{t('clear')}</Button>
+          
+          {/* ✅ ปุ่มตารางโค้ช จอมือถือ: สีอ่อนลงเมื่อ Hover */}
+          <Button 
+            variant="ghost" 
+            onClick={() => { setShowCoachSchedule(true); setMenuOpen(false); }}
+            className="w-full bg-slate-800 text-white flex items-center justify-start gap-2 hover:bg-slate-800/80 transition-all active:scale-95 px-4"
           >
-            {t('clear')}
+            <ClipboardList className="w-4 h-4" />
+            <span>ตารางโค้ช</span>
           </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => handleOpenSheet('students')}
-          >
-            {t('openStudents')}
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => handleOpenSheet('reports')}
-          >
-            {t('openReports')}
-          </Button>
-          <Button
-            variant="primary"
-            className="w-full justify-start"
-            onClick={handleAddStudent}
-          >
-            {t('addStudent')}
-          </Button>
+
+          <Button variant="ghost" className="w-full justify-start" onClick={() => { handleOpenSheet('students'); setMenuOpen(false); }}>{t('openStudents')}</Button>
+          <Button variant="ghost" className="w-full justify-start" onClick={() => { handleOpenSheet('reports'); setMenuOpen(false); }}>{t('openReports')}</Button>
+          <Button variant="primary" className="w-full justify-start" onClick={handleAddStudent}>{t('addStudent')}</Button>
         </div>
       )}
 
-      <StudentTable
-        students={sortedStudents}
-        loading={loading}
-        sortState={sortState}
-        onSort={handleSort}
-      />
-
-      <AddStudentModal
-        isOpen={showAddModal}
-        students={students}
-        onClose={() => setShowAddModal(false)}
-        onSuccess={handleAddStudentSuccess}
-      />
+      <StudentTable students={sortedStudents} loading={loading} sortState={sortState} onSort={handleSort} />
+      <AddStudentModal isOpen={showAddModal} students={students} onClose={() => setShowAddModal(false)} onSuccess={handleAddStudentSuccess} />
+      <CoachScheduleModal isOpen={showCoachSchedule} onClose={() => setShowCoachSchedule(false)} />
     </div>
   );
 }

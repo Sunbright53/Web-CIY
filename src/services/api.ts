@@ -2,7 +2,7 @@
 import { CONFIG } from '@/config';
 import { Student, Report, AddStudentForm } from '@/types';
 import { mapRawToCoaches } from './mapper';
-import { AddBookingForm} from '../types';
+import { AddBookingForm } from '../types';
 
 export type Coach = { coach_id: string; password: string; name: string };
 type ApiOk = { success: true; [k: string]: any };
@@ -20,7 +20,6 @@ async function postForm(url: string, payload: Record<string, string>): Promise<A
     if (!payload.key) payload.key = (WEBHOOK_KEY || '');
     Object.entries(payload).forEach(([k, v]) => body.append(k, v ?? ''));
 
-    // ✅ ไม่ใส่ Custom Headers เพื่อไม่ให้เกิด Preflight
     const res = await fetch(url, { 
       method: 'POST', 
       body,
@@ -38,25 +37,22 @@ async function postForm(url: string, payload: Record<string, string>): Promise<A
 }
 
 /* =========================================================
-   📅 ระบบจองและยกเลิกคาบเรียน (Booking System)
+   📅 ระบบจอง, ยกเลิก และลาเรียน (Booking & Absence System)
    ========================================================= */
 
-/** ✅ แก้ไข: ใช้ Simple GET เพื่อดึงข้อมูล Slots (แก้ปัญหา Load Failed) */
+/** ✅ ดึงข้อมูล Slots ที่ว่าง (คำนวณรวม Fix + Bookings - Absences แล้ว) */
 export async function fetchAvailableSlots(coachId: string, date: string): Promise<any> {
   if (!CONFIG.bookingScriptUrl) throw new Error('bookingScriptUrl is not set');
-  
   const bust = `t=${Date.now()}`;
   const url = `${CONFIG.bookingScriptUrl}?action=get_slots&coach_id=${encodeURIComponent(coachId)}&date=${encodeURIComponent(date)}&${bust}`;
   
-  // ✅ ใช้ Simple GET Request
   const res = await fetch(url, { mode: 'cors', cache: 'no-store' });
   const data = await res.json().catch(() => ({}));
-  
   if (!res.ok || data?.success === false) throw new Error(data?.error || `Failed to fetch slots`);
   return data; 
 }
 
-/** ✅ ดึงรายการที่จองไว้ของนักเรียน */
+/** ✅ ดึงรายการที่จองเสริมไว้ของนักเรียน */
 export async function fetchUserBookings(coderId: string): Promise<any> {
   if (!CONFIG.bookingScriptUrl) throw new Error('bookingScriptUrl is not set');
   const bust = `t=${Date.now()}`;
@@ -68,7 +64,7 @@ export async function fetchUserBookings(coderId: string): Promise<any> {
   return data;
 }
 
-/** ✅ ส่งข้อมูลจองเรียนใหม่ */
+/** ✅ ส่งข้อมูลจองเรียนชดเชยใหม่ */
 export async function submitBooking(data: AddBookingForm): Promise<ApiResponse> {
   if (!CONFIG.bookingScriptUrl) return { success: false, error: 'bookingScriptUrl is not set' };
   return postForm(CONFIG.bookingScriptUrl, {
@@ -80,7 +76,7 @@ export async function submitBooking(data: AddBookingForm): Promise<ApiResponse> 
   });
 }
 
-/** ✅ ยกเลิกการจองเรียน */
+/** ✅ ยกเลิกการจองเรียนชดเชย (ลบจาก Sheet Bookings) */
 export async function cancelBooking(data: { coder_id: string; date: string; time_slot: string }): Promise<ApiResponse> {
   if (!CONFIG.bookingScriptUrl) return { success: false, error: 'bookingScriptUrl is not set' };
   return postForm(CONFIG.bookingScriptUrl, {
@@ -89,6 +85,33 @@ export async function cancelBooking(data: { coder_id: string; date: string; time
     date: data.date,
     time_slot: data.time_slot,
   });
+}
+
+/** ✅ ใหม่: ส่งข้อมูลแจ้งลาเรียนสำหรับเด็กประจำ (ลงใน Sheet Absences) */
+export async function submitAbsence(data: { coder_id: string; date: string; time_slot: string; reason: string }): Promise<ApiResponse> {
+  if (!CONFIG.bookingScriptUrl) return { success: false, error: 'bookingScriptUrl is not set' };
+  return postForm(CONFIG.bookingScriptUrl, {
+    action: 'add_absence',
+    coder_id: data.coder_id,
+    date: data.date,
+    time_slot: data.time_slot,
+    reason: data.reason,
+  });
+}
+
+/** ✅ ดึงข้อมูลตารางรวมของโค้ช (Fix_date + Bookings) */
+export async function fetchCoachSchedule(coachId: string): Promise<any> {
+  if (!CONFIG.bookingScriptUrl) throw new Error('bookingScriptUrl is not set');
+  const bust = `t=${Date.now()}`;
+  
+  // จุดที่แก้: เพิ่ม &coach_id=${encodeURIComponent(coachId)} 
+  // เพื่อให้ Apps Script รู้ว่าเรากำลังดูตารางของใคร จะได้ไม่ขึ้น No Classes
+  const url = `${CONFIG.bookingScriptUrl}?action=get_coach_schedule&coach_id=${encodeURIComponent(coachId)}&${bust}`;
+  
+  const res = await fetch(url, { mode: 'cors', cache: 'no-store' });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data?.success === false) throw new Error(data?.error || `Failed`);
+  return data;
 }
 
 /* =========================================================
