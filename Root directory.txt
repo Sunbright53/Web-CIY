@@ -1,0 +1,73 @@
+WEB-CIY-1/
+│
+├── .github/
+├── docs/
+├── assets/
+│   ├── index-B6ujCzAl.css
+│   └── index-Bi-AYN7V.js
+│
+├── node_modules/
+├── public/
+│   └── CNAME
+│
+├── src/
+│   ├── cards/
+│   │   └── StudentProfile.tsx
+│   │
+│   ├── components/
+│   │   ├── ui/
+│   │   │   ├── Header.tsx
+│   │   │   ├── ProjectListBox.tsx
+│   │   │   └── Toast.tsx
+│   │
+│   ├── hooks/
+│   │   ├── useFloatingHScroll.ts
+│   │   ├── useI18n.ts
+│   │   ├── useReports.ts
+│   │   └── useStudents.ts
+│   │
+│   ├── modals/
+│   │   ├── AddReportModal.tsx
+│   │   └── AddStudentModal.tsx
+│   │
+│   ├── routes/
+│   │   ├── CoachLogin.tsx
+│   │   ├── Landing.tsx
+│   │   ├── ParentLogin.tsx
+│   │   ├── StudentDetail.tsx
+│   │   └── Students.tsx
+│   │
+│   ├── services/
+│   │   ├── api.ts
+│   │   └── mapper.ts
+│   │
+│   ├── store/
+│   │   └── authStore.ts
+│   │
+│   ├── styles/
+│   │   └── globals.css
+│   │
+│   ├── tables/
+│   │   ├── ReportsTable.tsx
+│   │   ├── StudentTable.tsx
+│   │   ├── AddReportModal.tsx
+│   │   └── AddStudentModal.tsx
+│   │
+│   ├── App.tsx
+│   ├── config.ts
+│   ├── main.tsx
+│   ├── types.ts
+│   ├── vite-env.d.ts
+│   └── ...
+│
+├── .env
+├── .gitignore
+├── index.html
+├── package.json
+├── package-lock.json
+├── postcss.config.js
+├── tailwind.config.js
+├── tsconfig.json
+├── tsconfig.node.json
+├── vite.config.ts
+└── README.md
